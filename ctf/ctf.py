@@ -123,7 +123,7 @@ while running:
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
             elif (event.key == K_SPACE):
-                tanks_list[0].shoot()
+                bullet_list.append(tanks_list[0].shoot(space))
         if (event.type == KEYUP):
             if event.key == K_UP:
                 tanks_list[0].stop_moving()
@@ -143,6 +143,8 @@ while running:
         for obj in game_objects_list:
             obj.update()
         for obj in tanks_list:
+            obj.update()
+        for obj in bullet_list:
             obj.update()
         skip_update = 2
     else:
@@ -177,6 +179,8 @@ while running:
         obj.update_screen(screen)
     for tank in tanks_list:
         tank.update_screen(screen)
+    for bullet in bullet_list:
+        bullet.update_screen(screen)
 
 
         #   Redisplay the entire screen (see double buffer technique)
