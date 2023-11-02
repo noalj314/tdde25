@@ -35,6 +35,7 @@ current_map = maps.map0
 #   List of all game objects
 game_objects_list = []
 tanks_list = []
+bullet_list = []
 
 # -- Resize the screen to the size of the current level
 screen = pygame.display.set_mode(current_map.rect().size)
@@ -121,6 +122,8 @@ while running:
                 tanks_list[0].turn_left()
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
+            elif (event.key == K_SPACE):
+                tanks_list[0].shoot()
         if (event.type == KEYUP):
             if event.key == K_UP:
                 tanks_list[0].stop_moving()

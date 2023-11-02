@@ -3,6 +3,8 @@
 import math
 import pygame
 import pymunk
+
+import gameobjects
 import images
 
 DEBUG = False  # Change this to set it in debug mode
@@ -212,8 +214,43 @@ class Tank(GamePhysicsObject):
 
     def shoot(self, space):
         """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
+
         return
 
+class Bullet(GamePhysicsObject):
+    """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
+
+    # Constant values for the tank, acessed like: Tank.ACCELERATION
+    # You can add more constants here if needed later
+
+    NORMAL_MAX_SPEED = 5.0
+    ACCELERATION = 1.0
+
+    def __init__(self, x, y, orientation, sprite, space):
+        super().__init__(x, y, orientation, sprite, space, True)
+        # Define variable used to apply motion to the tanks
+        self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
+        self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+
+        self.flag = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
+        self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
+        self.start_position = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
+
+    def update(self):
+        """ A function to update the objects coordinates. Gets called at every tick of the game. """
+
+        # Creates a vector in the direction we want accelerate / decelerate
+        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
+        # Applies the vector to our velocity
+        self.body.velocity += acceleration_vector
+
+        # Makes sure that we dont exceed our speed limit
+        velocity = clamp(self.max_speed, self.body.velocity.length)
+        self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
+
+        # Updates the rotation
+        self.body.angular_velocity += self.rotation * self.ACCELERATION
+        self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
 
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
