@@ -214,8 +214,8 @@ class Tank(GamePhysicsObject):
 
     def shoot(self, space):
         """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
-
-        return
+        return gameobjects.Bullet(self, images.bullet, space)
+        
 
 class Bullet(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
@@ -226,15 +226,17 @@ class Bullet(GamePhysicsObject):
     NORMAL_MAX_SPEED = 5.0
     ACCELERATION = 1.0
 
-    def __init__(self, x, y, orientation, sprite, space):
-        super().__init__(x, y, orientation, sprite, space, True)
+    def __init__(self, tank, sprite, space):
+        super().__init__(tank.body.position[0], tank.body.position[1], tank.screen_orientation(), sprite, space, True)
         # Define variable used to apply motion to the tanks
         self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
         self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+        self.speed = 17
+        self.body.velocity = pymunk.Vec2d(self.speed*(math.cos(math.degrees(tank.screen_orientation()))), self.speed*(math.sin(math.degrees(tank.screen_orientation()))))
 
         self.flag = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
         self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
-        self.start_position = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
+        self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])        # Define the start position, which is also the position where the tank has to return with the flag
 
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
