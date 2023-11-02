@@ -88,6 +88,7 @@ variabel = 0
 
 while running:
     # -- Handle the events
+
     for event in pygame.event.get():
         # Check if we receive a QUIT event (for instance, if the user press the
         # close button of the wiendow) or if the user press the escape key.
@@ -112,12 +113,16 @@ while running:
                 tanks_list[0].stop_turning()
             elif (event.key == K_RIGHT):
                 tanks_list[0].stop_turning()
-    
+
+
+
     # -- Update physics
     if skip_update == 0:
         # Loop over all the game objects and update their speed in function of their
         # acceleration.
         for obj in game_objects_list:
+            obj.update()
+        for obj in tanks_list:
             obj.update()
         skip_update = 2
     else:
@@ -129,6 +134,13 @@ while running:
     #   Update object that depends on an other object position (for instance a flag)
     for obj in game_objects_list:
         obj.post_update()
+    # Try to grab the flag and then if it has the flag update the posistion of the tank
+    for tank in tanks_list:
+        tank.try_grab_flag(flag)
+        tank.post_update()
+
+
+    #
 
     # -- Update Display
 
@@ -142,8 +154,7 @@ while running:
         obj.update_screen(screen)
     for tank in tanks_list:
         tank.update_screen(screen)
-
-    #   Redisplay the entire screen (see double buffer technique)
+        #   Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
     #   Control the game framerate
