@@ -39,6 +39,19 @@ tanks_list = []
 # -- Resize the screen to the size of the current level
 screen = pygame.display.set_mode(current_map.rect().size)
 
+#Adds walls to prevent from going outside the screen
+static_body = space.static_body
+static_lines = [
+    pymunk.Segment(static_body, (0, 0), (current_map.width, 0), 0.0),
+    pymunk.Segment(static_body, (current_map.width, 0), (current_map.width, current_map.height), 0.0),
+    pymunk.Segment(static_body, (0, 0), (0, current_map.height), 0.0),
+    pymunk.Segment(static_body, (0, current_map.height), (current_map.width, current_map.height), 0.0),
+]
+for line in static_lines:
+    line.elasticity = 1
+    line.friction = 0.9
+space.add(*static_lines)
+
 # <INSERT GENERATE BACKGROUND>
 background = pygame.Surface(screen.get_size())
 
@@ -140,9 +153,12 @@ while running:
         obj.post_update()
     # Try to grab the flag and then if it has the flag update the posistion of the tank
     for tank in tanks_list:
-       tank.try_grab_flag(flag)
-       tank.post_update()
-
+        tank.try_grab_flag(flag)
+        tank.post_update()
+        
+        if tank.has_won():
+            print(f"{tank} has won!")
+            running = False
 
     #
 
