@@ -122,100 +122,100 @@ def clamp(min_max, value):
     """ Convenient helper function to bound a value to a specific interval. """
     return min(max(-min_max, value), min_max)
 
-
 class Tank(GamePhysicsObject):
-    """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
+        """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
 
-    # Constant values for the tank, acessed like: Tank.ACCELERATION
-    # You can add more constants here if needed later
-    ACCELERATION = 0.4
-    NORMAL_MAX_SPEED = 2.0
-    FLAG_MAX_SPEED = NORMAL_MAX_SPEED * 0.5
+        # Constant values for the tank, acessed like: Tank.ACCELERATION
+        # You can add more constants here if needed later
+        ACCELERATION = 0.4
+        NORMAL_MAX_SPEED = 2.0
+        FLAG_MAX_SPEED = NORMAL_MAX_SPEED * 0.5
 
-    def __init__(self, x, y, orientation, sprite, space):
-        super().__init__(x, y, orientation, sprite, space, True)
-        # Define variable used to apply motion to the tanks
-        self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
-        self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+        def __init__(self, x, y, orientation, sprite, space):
+            super().__init__(x, y, orientation, sprite, space, True)
+            # Define variable used to apply motion to the tanks
+            self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
+            self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
 
-        self.flag = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
-        self.max_speed = Tank.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
-        self.start_position = pymunk.Vec2d(x, y)        # Define the start position, which is also the position where the tank has to return with the flag
+            self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
+            self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
+            self.start_position = pymunk.Vec2d(x,
+                                               y)  # Define the start position, which is also the position where the tank has to return with the flag
 
-    def accelerate(self):
-        """ Call this function to make the tank move forward. """
-        self.acceleration = 1
+        def accelerate(self):
+            """ Call this function to make the tank move forward. """
+            self.acceleration = 1
 
-    def stop_moving(self):
-        """ Call this function to make the tank stop moving. """
-        self.acceleration = 0
-        self.body.velocity = pymunk.Vec2d.zero()
+        def stop_moving(self):
+            """ Call this function to make the tank stop moving. """
+            self.acceleration = 0
+            self.body.velocity = pymunk.Vec2d.zero()
 
-    def decelerate(self):
-        """ Call this function to make the tank move backward. """
-        self.acceleration = -1
+        def decelerate(self):
+            """ Call this function to make the tank move backward. """
+            self.acceleration = -1
 
-    def turn_left(self):
-        """ Makes the tank turn left (counter clock-wise). """
-        self.rotation = -1
+        def turn_left(self):
+            """ Makes the tank turn left (counter clock-wise). """
+            self.rotation = -1
 
-    def turn_right(self):
-        """ Makes the tank turn right (clock-wise). """
-        self.rotation = 1
+        def turn_right(self):
+            """ Makes the tank turn right (clock-wise). """
+            self.rotation = 1
 
-    def stop_turning(self):
-        """ Call this function to make the tank stop turning. """
-        self.rotation = 0
-        self.body.angular_velocity = 0
+        def stop_turning(self):
+            """ Call this function to make the tank stop turning. """
+            self.rotation = 0
+            self.body.angular_velocity = 0
 
-    def update(self):
-        """ A function to update the objects coordinates. Gets called at every tick of the game. """
+        def update(self):
+            """ A function to update the objects coordinates. Gets called at every tick of the game. """
 
-        # Creates a vector in the direction we want accelerate / decelerate
-        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
-        # Applies the vector to our velocity
-        self.body.velocity += acceleration_vector
+            # Creates a vector in the direction we want accelerate / decelerate
+            acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
+            # Applies the vector to our velocity
+            self.body.velocity += acceleration_vector
 
-        # Makes sure that we dont exceed our speed limit
-        velocity = clamp(self.max_speed, self.body.velocity.length)
-        self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
+            # Makes sure that we dont exceed our speed limit
+            velocity = clamp(self.max_speed, self.body.velocity.length)
+            self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
 
-        # Updates the rotation
-        self.body.angular_velocity += self.rotation * self.ACCELERATION
-        self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
+            # Updates the rotation
+            self.body.angular_velocity += self.rotation * self.ACCELERATION
+            self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
 
-    def post_update(self):
-        # If the tank carries the flag, then update the positon of the flag
-        if (self.flag is not None):
-            self.flag.x = self.body.position[0]
-            self.flag.y = self.body.position[1]
-            self.flag.orientation = -math.degrees(self.body.angle)
-        # Else ensure that the tank has its normal max speed
-        else:
-            self.max_speed = Tank.NORMAL_MAX_SPEED
+        def post_update(self):
+            # If the tank carries the flag, then update the positon of the flag
+            if (self.flag is not None):
+                self.flag.x = self.body.position[0]
+                self.flag.y = self.body.position[1]
+                self.flag.orientation = -math.degrees(self.body.angle)
+            # Else ensure that the tank has its normal max speed
+            else:
+                self.max_speed = Tank.NORMAL_MAX_SPEED
 
-    def try_grab_flag(self, flag):
-        """ Call this function to try to grab the flag, if the flag is not on other tank
-            and it is close to the current tank, then the current tank will grab the flag.
-        """
-        # Check that the flag is not on other tank
-        if not flag.is_on_tank:
-            # Check if the tank is close to the flag
-            flag_pos = pymunk.Vec2d(flag.x, flag.y)
-            if (flag_pos - self.body.position).length < 0.5:
-                # Grab the flag !
-                self.flag = flag
-                flag.is_on_tank = True
-                self.max_speed = Tank.FLAG_MAX_SPEED
+        def try_grab_flag(self, flag):
+            """ Call this function to try to grab the flag, if the flag is not on other tank
+                and it is close to the current tank, then the current tank will grab the flag.
+            """
+            # Check that the flag is not on other tank
+            if not flag.is_on_tank:
+                # Check if the tank is close to the flag
+                flag_pos = pymunk.Vec2d(flag.x, flag.y)
+                if (flag_pos - self.body.position).length < 0.5:
+                    # Grab the flag !
+                    self.flag = flag
+                    flag.is_on_tank = True
+                    self.max_speed = Tank.FLAG_MAX_SPEED
 
-    def has_won(self):
-        """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
-        return self.flag is not None and (self.start_position - self.body.position).length < 0.2
+        def has_won(self):
+            """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
+            return self.flag is not None and (self.start_position - self.body.position).length < 0.2
 
-    def shoot(self, space):
-        """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
-        return gameobjects.Bullet(self, images.bullet, space)
-        
+        def shoot(self, space):
+            """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
+
+            return gameobjects.Bullet(self, images.bullet, space)
 
 class Bullet(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
@@ -232,11 +232,12 @@ class Bullet(GamePhysicsObject):
         self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
         self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
         self.speed = 17
-        self.body.velocity = pymunk.Vec2d(self.speed*(math.cos(math.degrees(tank.screen_orientation()))), self.speed*(math.sin(math.degrees(tank.screen_orientation()))))
+
+        self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation()-90))), self.speed * (math.sin(math.radians(tank.screen_orientation()+90))))
 
         self.flag = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
         self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
-        self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])        # Define the start position, which is also the position where the tank has to return with the flag
+        self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])        # Define the start position of the bullet
 
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
