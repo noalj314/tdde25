@@ -9,6 +9,13 @@ import images
 
 DEBUG = False  # Change this to set it in debug mode
 
+collision_types = {
+    "wall": 1,      #Walls stop tanks and destroy bullets
+    "wood": 2,      #Wooden boxes are destroyed upon being shot
+    "metal": 3,     #Metal boxes are pushed
+    "bullet": 4,    #Bullets are destroyed upon hitting something
+    "tank": 5,      #Tanks are destroyed when hit by bullets
+}
 
 def physics_to_display(x):
     """ This function is used to convert coordinates in the physic engine into the display coordinates """
@@ -222,7 +229,7 @@ class Tank(GamePhysicsObject):
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
                 bullet = gameobjects.Bullet(self, images.bullet, space)
-                bullet.shape.collision_type = ctf.collision_types["bullet"]
+                bullet.shape.collision_type = collision_types["bullet"]
                 return bullet
             else:
                 return None

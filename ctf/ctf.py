@@ -19,16 +19,8 @@ space = pymunk.Space()
 space.gravity = (0.0, 0.0)
 space.damping = 0.1  # Adds friction to the ground for all objects
 
-collision_types = {
-    "wall": 1,      #Walls stop tanks and destroy bullets
-    "wood": 2,      #Wooden boxes are destroyed upon being shot
-    "metal": 3,     #Metal boxes are pushed
-    "bullet": 4,    #Bullets are destroyed upon hitting something
-    "tank": 5,      #Tanks are destroyed when hit by bullets
-}
 
-
-collision_handler = pymunk.CollisionHandler(space.add_collision_handler(0, 1), space)
+collision_handler = space.add_collision_handler(2, 4)
 
 # -- Import from the ctf framework
 # The framework needs to be imported after initialisation of pygame
@@ -84,7 +76,7 @@ for x in range(0, current_map.width):
             box = gameobjects.get_box_with_type(x, y, box_type, space)
             box.shape.collision_type = box_type
             game_objects_list.append(box)
-
+            
 
 
 # <INSERT CREATE TANKS>
@@ -100,7 +92,7 @@ for i in range(0, len(current_map.start_positions)):
     # Add the tank to the list of tanks
     tanks_list.append(tank)
     #Add collision_type for the tank
-    tank.shape.collision_type = collision_types["tank"]
+    tank.shape.collision_type = gameobjects.collision_types["tank"]
     # Add the base for the tank to the game_objects_list
     game_objects_list.append(base)
 
@@ -136,7 +128,7 @@ while running:
                 tanks_list[0].turn_left()
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
-            elif (event.key == K_SPACE) and tanks_list[0].ability_to_shoot():
+            elif (event.key == K_SPACE):
                 bullet_list.append(tanks_list[0].shoot(space))
         if (event.type == KEYUP):
             if event.key == K_UP:
