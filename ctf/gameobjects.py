@@ -221,7 +221,9 @@ class Tank(GamePhysicsObject):
             """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
-                return gameobjects.Bullet(self, images.bullet, space)
+                bullet = gameobjects.Bullet(self, images.bullet, space)
+                bullet.shape.collision_type = ctf.collision_types["bullet"]
+                return bullet
             else:
                 return None
 
