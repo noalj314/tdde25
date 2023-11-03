@@ -28,7 +28,7 @@ collision_types = {
 }
 
 
-collision_handler = pymunk.CollisionHandler(add_collision_handler(0, 1), space)
+collision_handler = pymunk.CollisionHandler(space.add_collision_handler(0, 1), space)
 
 # -- Import from the ctf framework
 # The framework needs to be imported after initialisation of pygame
