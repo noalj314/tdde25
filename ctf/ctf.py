@@ -122,7 +122,7 @@ while running:
                 tanks_list[0].turn_left()
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
-            elif (event.key == K_SPACE):
+            elif (event.key == K_SPACE) and tanks_list[0].ability_to_shoot():
                 bullet_list.append(tanks_list[0].shoot(space))
         if (event.type == KEYUP):
             if event.key == K_UP:

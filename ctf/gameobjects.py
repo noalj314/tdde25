@@ -136,6 +136,7 @@ class Tank(GamePhysicsObject):
             # Define variable used to apply motion to the tanks
             self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
             self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+            self.shoot_last = 60  # set last shoot to 60 since the tank has not shoot
 
             self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
             self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
@@ -168,6 +169,10 @@ class Tank(GamePhysicsObject):
             self.rotation = 0
             self.body.angular_velocity = 0
 
+        def ability_to_shoot(self):
+            """ Call this function to check whether a tank can shoot or not """
+            return self.shoot_last >= 60
+
         def update(self):
             """ A function to update the objects coordinates. Gets called at every tick of the game. """
 
@@ -193,7 +198,7 @@ class Tank(GamePhysicsObject):
             # Else ensure that the tank has its normal max speed
             else:
                 self.max_speed = Tank.NORMAL_MAX_SPEED
-
+            self.shoot_last += 1
         def try_grab_flag(self, flag):
             """ Call this function to try to grab the flag, if the flag is not on other tank
                 and it is close to the current tank, then the current tank will grab the flag.
@@ -214,8 +219,11 @@ class Tank(GamePhysicsObject):
 
         def shoot(self, space):
             """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
-
-            return gameobjects.Bullet(self, images.bullet, space)
+            if Tank.ability_to_shoot(self):
+                self.shoot_last = 0
+                return gameobjects.Bullet(self, images.bullet, space)
+            else:
+                return None
 
 class Bullet(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
@@ -229,13 +237,12 @@ class Bullet(GamePhysicsObject):
     def __init__(self, tank, sprite, space):
         super().__init__(tank.body.position[0], tank.body.position[1], tank.screen_orientation(), sprite, space, True)
         # Define variable used to apply motion to the tanks
-        self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
+        self.acceleration = 1# 1 forward, 0 for stand still, -1 for backwards
         self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
         self.speed = 17
 
         self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation()-90))), self.speed * (math.sin(math.radians(tank.screen_orientation()+90))))
 
-        self.flag = None                      # This variable is used to access the flag object, if the current tank is carrying the flag
         self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
         self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])        # Define the start position of the bullet
 
@@ -254,6 +261,8 @@ class Bullet(GamePhysicsObject):
         # Updates the rotation
         self.body.angular_velocity += self.rotation * self.ACCELERATION
         self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
+
+
 
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
