@@ -194,8 +194,17 @@ while running:
         tank.post_update()
         
         if tank.has_won():
-            print(f"{tank} has won!")
-            running = False
+            game_objects_list.remove(tank.flag)
+            flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
+            game_objects_list.append(flag)
+            
+            tank.body.position = tank.start_position.x, tank.start_position.y
+            tank.body.angle = tank.start_orientation
+            tank.flag = None
+            tank.score += 1
+            for i in range(len(tanks_list)):
+                print(f"Player {i+1}: {tanks_list[i].score}")
+
 
     #
 
