@@ -7,6 +7,7 @@ import pymunk
 import gameobjects
 import images
 
+
 DEBUG = False  # Change this to set it in debug mode
 
 collision_types = {
@@ -228,7 +229,7 @@ class Tank(GamePhysicsObject):
             """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
-                bullet = gameobjects.Bullet(self, images.bullet, space)
+                bullet = Bullet(self, images.bullet, space)
                 bullet.shape.collision_type = collision_types["bullet"]
                 return bullet
             else:
@@ -241,37 +242,29 @@ class Bullet(GamePhysicsObject):
     # You can add more constants here if needed later
 
     NORMAL_MAX_SPEED = 5.0
-    ACCELERATION = 1.0
+    ACCELERATION = 0
 
     def __init__(self, tank, sprite, space):
         super().__init__(tank.body.position[0], tank.body.position[1], tank.screen_orientation(), sprite, space, True)
-        # Define variable used to apply motion to the tanks
-        self.acceleration = 1# 1 forward, 0 for stand still, -1 for backwards
+        # Define variable used to apply motion to the bullet
+        self.acceleration = 1
         self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
-        self.speed = 17
-
+        self.speed = 10
+        self.body.damping = 0.0
         self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation()-90))), self.speed * (math.sin(math.radians(tank.screen_orientation()+90))))
-
-        self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the tank
-        self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])        # Define the start position of the bullet
+        self.space = space
+        self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the bullet
+        self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])      # Define the start position of the bullet
 
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
-
-        # Creates a vector in the direction we want accelerate / decelerate
-        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
         # Applies the vector to our velocity
-        self.body.velocity += acceleration_vector
+        damping_spacefctr = 1.0 / (1.0 - self.space.damping)
+        self.body.velocity += (damping_spacefctr * self.body.velocity)
 
         # Makes sure that we dont exceed our speed limit
         velocity = clamp(self.max_speed, self.body.velocity.length)
         self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
-
-        # Updates the rotation
-        self.body.angular_velocity += self.rotation * self.ACCELERATION
-        self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
-
-
 
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """

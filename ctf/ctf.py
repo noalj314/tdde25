@@ -34,7 +34,7 @@ FRAMERATE = 50
 
 # -- Variables
 #   Define the current level
-current_map = maps.map0
+current_map = maps.map3
 #   List of all game objects
 game_objects_list = []
 tanks_list = []
@@ -119,7 +119,6 @@ while running:
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
         if (event.type == KEYDOWN):
-            #print(tanks_list[0].body.position)
             if event.key == K_UP:
                 tanks_list[0].accelerate()
             elif (event.key == K_DOWN):
@@ -128,7 +127,7 @@ while running:
                 tanks_list[0].turn_left()
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
-            elif (event.key == K_SPACE):
+            elif (event.key == K_SPACE) and tanks_list[0].ability_to_shoot():
                 bullet_list.append(tanks_list[0].shoot(space))
         if (event.type == KEYUP):
             if event.key == K_UP:
