@@ -97,6 +97,7 @@ class GamePhysicsObject(GameObject):
 
         self.body.position = x, y
         self.body.angle = math.radians(orientation)       # orientation is provided in degress, but pymunk expects radians.
+        self.start_orientation = math.radians(orientation)
         self.shape = pymunk.Poly(self.body, points)  # Create a polygon shape using the corner of the rectangle
         self.shape.parent = self
 

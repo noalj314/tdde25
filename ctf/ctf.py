@@ -19,9 +19,6 @@ space = pymunk.Space()
 space.gravity = (0.0, 0.0)
 space.damping = 0.1  # Adds friction to the ground for all objects
 
-
-collision_handler = space.add_collision_handler(2, 4)
-
 # -- Import from the ctf framework
 # The framework needs to be imported after initialisation of pygame
 import ai
@@ -39,6 +36,36 @@ current_map = maps.map3
 game_objects_list = []
 tanks_list = []
 bullet_list = []
+
+def collision_bullet_wood(arb, space, data):
+    space.remove(arb.shapes[0], arb.shapes[0].body)
+    space.remove(arb.shapes[1], arb.shapes[1].body)
+    bullet_list.remove(arb.shapes[0].parent)
+    game_objects_list.remove(arb.shapes[1].parent)
+    return True
+
+def collision_bullet_wall(arb, space, data):
+    space.remove(arb.shapes[0], arb.shapes[0].body)
+    bullet_list.remove(arb.shapes[0].parent)
+    return True
+
+def collision_bullet_tank(arb, space, data):
+    space.remove(arb.shapes[0], arb.shapes[0].body)
+    bullet_list.remove(arb.shapes[0].parent)
+    arb.shapes[1].parent.body.position = arb.shapes[1].parent.start_position.x, arb.shapes[1].parent.start_position.y
+    arb.shapes[1].parent.body.angle = arb.shapes[1].parent.start_orientation
+    return True
+
+b_w_handler = space.add_collision_handler(4, 2)
+b_w_handler.pre_solve = collision_bullet_wood
+b_s_handler = space.add_collision_handler(4, 1)
+b_s_handler.pre_solve = collision_bullet_wall
+b_m_handler = space.add_collision_handler(4, 3)
+b_m_handler.pre_solve = collision_bullet_wall
+b_m_handler = space.add_collision_handler(4, 0)
+b_m_handler.pre_solve = collision_bullet_wall
+#b_t_handler = space.add_collision_handler(4, 5)
+#b_t_handler.pre_solve = collision_bullet_tank
 
 # -- Resize the screen to the size of the current level
 screen = pygame.display.set_mode(current_map.rect().size)
