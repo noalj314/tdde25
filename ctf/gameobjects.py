@@ -239,24 +239,21 @@ class Tank(GamePhysicsObject):
 
 class Bullet(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
-
-    # Constant values for the tank, acessed like: Tank.ACCELERATION
     # You can add more constants here if needed later
 
     NORMAL_MAX_SPEED = 5.0
-    ACCELERATION = 0
 
     def __init__(self, tank, sprite, space):
-        super().__init__(tank.body.position[0], tank.body.position[1], tank.screen_orientation(), sprite, space, True)
+
+        x_start = tank.body.position.x + (0.3 * math.cos(math.radians(tank.screen_orientation()-90)))
+        y_start = tank.body.position.y + (0.3 * math.sin(math.radians(tank.screen_orientation()+90)))
+
+        super().__init__(x_start, y_start, tank.screen_orientation(), sprite, space, True)
         # Define variable used to apply motion to the bullet
-        self.acceleration = 1
-        self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
-        self.speed = 10
-        self.body.damping = 0.0
+        self.speed = 5
         self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation()-90))), self.speed * (math.sin(math.radians(tank.screen_orientation()+90))))
         self.space = space
         self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the bullet
-        self.start_position = pymunk.Vec2d(tank.body.position[0], tank.body.position[1])      # Define the start position of the bullet
 
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
