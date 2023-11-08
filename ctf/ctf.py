@@ -11,8 +11,8 @@ import pymunk
 space = pymunk.Space()
 space.gravity = (0.0, 0.0)
 space.damping = 0.1  # Adds friction to the ground for all objects
-# -- Initialise the display
 
+# -- Initialise the display
 pygame.init()
 pygame.display.set_mode()
 
@@ -37,7 +37,7 @@ FRAMERATE = 50
 current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
-    #   List of all game objects
+    # -- List of all game objects
 game_objects_list = []
 tanks_list = []
 bullet_list = []
@@ -70,7 +70,7 @@ def collision_bullet_wall(arb, space, data):
     return True
 
 def collision_bullet_tank(arb, space, data):
-    remove_shape(space,arb.shapes[0], arb.shapes[0].body)
+    remove_shape(space,arb.shapes[0])
     remove_from_list(bullet_list, arb.shapes[0].parent)
     reset_tank(arb.shapes[1].parent)
     return True
@@ -84,10 +84,10 @@ b_w_handler = collision_handler(space,4,2,collision_bullet_wood)
 b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
 b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
 b_m_handler = collision_handler(space, 4, 0, collision_bullet_wall)
-#b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
+b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
 
 
-#Adds walls to prevent from going outside the screen
+# Adds walls to prevent from going outside the screen
 def barrier(current_map, space):
     """Adds a barrier to prevent from going outside the screen"""
     static_body = space.static_body
@@ -103,7 +103,7 @@ def barrier(current_map, space):
     space.add(*static_lines)
 barrier(current_map,space)
 
-# Generate background
+# -- Generate background
 def create_background(screen, current_map, images):
     """Creates a plain background with grass and no objects"""
     background = pygame.Surface(screen.get_size())
@@ -113,7 +113,7 @@ def create_background(screen, current_map, images):
     return background
 background = create_background(screen, current_map, images)
 
-#-- Create the boxes
+# -- Create the boxes
 def create_boxes():
     """Adds boxes to the map that acts as physical objects"""
     for x in range(0, current_map.width):
@@ -148,16 +148,15 @@ def create_tanks():
     # Add the base for the tank to the game_objects_list
         game_objects_list.append(base)
     # Create ai instances for each tank except the first
-    if i > 0:
-        bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
-        ai_list.append(bot)
+        if i > 0:
+            bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
+            ai_list.append(bot)
 
 create_tanks()
 
 
 # <INSERT CREATE FLAG>
 #-- Create the flag
-
 flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
 game_objects_list.append(flag)
 
@@ -198,8 +197,6 @@ while running:
             elif (event.key == K_RIGHT):
                 tanks_list[0].stop_turning()
 
-
-
     # -- Update physics
     if skip_update == 0:
         # Loop over all the game objects and update their speed in function of their
@@ -239,9 +236,10 @@ while running:
 
 
     # Update ai
-    for ai in ai_list:
-        ai.get_tile_neighbors(ai.tank.body.position)
-        ai.decide()
+    def bots():
+        for ai in ai_list:
+            ai.get_tile_neighbors(ai.tank.body.position)
+            ai.decide()
 
     # -- Update Display
 
@@ -259,7 +257,7 @@ while running:
         bullet.update_screen(screen)
 
 
-        #   Redisplay the entire screen (see double buffer technique)
+    #   Redisplay the entire screen (see double buffer technique)
     pygame.display.flip()
 
     #   Control the game framerate
