@@ -75,7 +75,30 @@ class Ai:
         """
         # To be implemented
         shortest_path = []
+        
+        queue = deque([self.tank.body.position])
+        visited = []
+        node = queue[0]
+        while queue:
+            queue.popleft()
+            if node == get_target_tile():
+                return node
+            for i in get_tile_neighbors(get_tile_of_position(self.tank.body.position)):
+                if not visited.__contains__(i):
+                    visited.append(i)
+                    i.parent = node
+                    queue.append(i)
+        shortest_path.appendleft(get_target_tile())
+        add_parent(shortest_path)
         return deque(shortest_path)
+    
+    def add_parent(self, path):
+        if path[-1].parent is None:
+            return path
+        path.append(path[-1].parent)
+        add_parent(path)
+        return path
+
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
