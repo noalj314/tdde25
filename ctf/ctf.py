@@ -31,7 +31,7 @@ FRAMERATE = 50
 
 # -- Variables
 #   Define the current level
-current_map = maps.map3
+current_map = maps.map0
 #   List of all game objects
 game_objects_list = []
 tanks_list = []
@@ -64,8 +64,8 @@ b_m_handler = space.add_collision_handler(4, 3)
 b_m_handler.pre_solve = collision_bullet_wall
 b_m_handler = space.add_collision_handler(4, 0)
 b_m_handler.pre_solve = collision_bullet_wall
-#b_t_handler = space.add_collision_handler(4, 5)
-#b_t_handler.pre_solve = collision_bullet_tank
+b_t_handler = space.add_collision_handler(4, 5)
+b_t_handler.pre_solve = collision_bullet_tank
 
 # -- Resize the screen to the size of the current level
 screen = pygame.display.set_mode(current_map.rect().size)
