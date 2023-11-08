@@ -110,16 +110,16 @@ class Ai:
             A bordering square is only considered accessible if it is grass
             or a wooden box.
         """
-        neighbors.append(Vec2d(coord_vec) + Vec2d(0,1))
-        neighbors.append(Vec2d(coord_vec) + Vec2d(1,0))
-        neighbors.append(Vec2d(coord_vec) + Vec2d(-1,0))
-        neighbors.append(Vec2d(coord_vec) + Vec2d(0,-1))
         neighbors = []  # Find the coordinates of the tiles' four neighbors
+        neighbors.append(Vec2d(coord_vec[0],coord_vec[1]) + Vec2d(0,1))
+        neighbors.append(Vec2d(coord_vec[0],coord_vec[1]) + Vec2d(1,0))
+        neighbors.append(Vec2d(coord_vec[0],coord_vec[1]) + Vec2d(-1,0))
+        neighbors.append(Vec2d(coord_vec[0],coord_vec[1]) + Vec2d(0,-1))
         return filter(self.filter_tile_neighbors, neighbors)
 
     def filter_tile_neighbors(self, coord):
         """ Used to filter the tile to check if it is a neighbor of the tank.
         """
-        if 0 <= coord[0] <= self.MAX_X and 0 <= coord[1] <= self.MAX_Y and self.currentmap.boxAt(coord) == 0:
+        if 0 <= coord.x <= self.MAX_X and 0 <= coord.y <= self.MAX_Y and self.currentmap.boxAt(coord) == 0:
             return True
         return False

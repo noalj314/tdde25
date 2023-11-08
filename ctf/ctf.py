@@ -214,6 +214,7 @@ while running:
 
     # Update ai
     for ai in ai_list:
+        ai.get_tile_neighbors(ai.tank.body.position)
         ai.decide()
 
     # -- Update Display
