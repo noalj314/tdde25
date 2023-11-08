@@ -7,131 +7,157 @@ import pymunk
 
 # ----- Initialisation ----- #
 
+# -- Initialise the physics
+space = pymunk.Space()
+space.gravity = (0.0, 0.0)
+space.damping = 0.1  # Adds friction to the ground for all objects
 # -- Initialise the display
+
 pygame.init()
 pygame.display.set_mode()
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
 
-# -- Initialise the physics engine
-space = pymunk.Space()
-space.gravity = (0.0, 0.0)
-space.damping = 0.1  # Adds friction to the ground for all objects
+
 
 # -- Import from the ctf framework
 # The framework needs to be imported after initialisation of pygame
+
 import ai
 import images
 import gameobjects
 import maps
 
-# -- Constants
+    # -- Constants
 FRAMERATE = 50
 
-# -- Variables
-#   Define the current level
+    # -- Variables
+    #   Define the current level
 current_map = maps.map0
-#   List of all game objects
+screen = pygame.display.set_mode(current_map.rect().size)
+
+    #   List of all game objects
 game_objects_list = []
 tanks_list = []
 bullet_list = []
 ai_list = []
 
+
+def remove_shape(space, shape, shape2=None):
+    """Removes shapes and bodies from the space"""
+    space.remove(shape, shape.body)
+    if shape2:
+        space.remove(shape2,shape2.body)
+def remove_from_list(lst, obj):
+    """Remove an object from its list"""
+    lst.remove(obj)
+
+def reset_tank(tank):
+    "Reset the tanks posisiton to its starting posistion"
+    tank.body.position = tank.start_position.x, tank.start_position.y
+    tank.body.angle = tank.start_orientation
+
 def collision_bullet_wood(arb, space, data):
-    space.remove(arb.shapes[0], arb.shapes[0].body)
-    space.remove(arb.shapes[1], arb.shapes[1].body)
-    bullet_list.remove(arb.shapes[0].parent)
-    game_objects_list.remove(arb.shapes[1].parent)
+    remove_shape(space,arb.shapes[0], arb.shapes[1])
+    remove_from_list(bullet_list,arb.shapes[0].parent)
+    remove_from_list(game_objects_list,arb.shapes[1].parent)
     return True
 
 def collision_bullet_wall(arb, space, data):
-    space.remove(arb.shapes[0], arb.shapes[0].body)
-    bullet_list.remove(arb.shapes[0].parent)
+    remove_shape(space, arb.shapes[0])
+    remove_from_list(bullet_list, arb.shapes[0].parent)
     return True
 
 def collision_bullet_tank(arb, space, data):
-    space.remove(arb.shapes[0], arb.shapes[0].body)
-    bullet_list.remove(arb.shapes[0].parent)
-    arb.shapes[1].parent.body.position = arb.shapes[1].parent.start_position.x, arb.shapes[1].parent.start_position.y
-    arb.shapes[1].parent.body.angle = arb.shapes[1].parent.start_orientation
+    remove_shape(space,arb.shapes[0], arb.shapes[0].body)
+    remove_from_list(bullet_list, arb.shapes[0].parent)
+    reset_tank(arb.shapes[1].parent)
     return True
 
-b_w_handler = space.add_collision_handler(4, 2)
-b_w_handler.pre_solve = collision_bullet_wood
-b_s_handler = space.add_collision_handler(4, 1)
-b_s_handler.pre_solve = collision_bullet_wall
-b_m_handler = space.add_collision_handler(4, 3)
-b_m_handler.pre_solve = collision_bullet_wall
-b_m_handler = space.add_collision_handler(4, 0)
-b_m_handler.pre_solve = collision_bullet_wall
-b_t_handler = space.add_collision_handler(4, 5)
-b_t_handler.pre_solve = collision_bullet_tank
+def collision_handler(space, collision_type_x, collision_type_y, collision_bullet_z):
+    handle = space.add_collision_handler(collision_type_x, collision_type_y)
+    handle.pre_solve = collision_bullet_z
+    return handle
 
-# -- Resize the screen to the size of the current level
-screen = pygame.display.set_mode(current_map.rect().size)
+b_w_handler = collision_handler(space,4,2,collision_bullet_wood)
+b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
+b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
+b_m_handler = collision_handler(space, 4, 0, collision_bullet_wall)
+#b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
+
 
 #Adds walls to prevent from going outside the screen
-static_body = space.static_body
-static_lines = [
-    pymunk.Segment(static_body, (0, 0), (current_map.width, 0), 0.0),
-    pymunk.Segment(static_body, (current_map.width, 0), (current_map.width, current_map.height), 0.0),
-    pymunk.Segment(static_body, (0, 0), (0, current_map.height), 0.0),
-    pymunk.Segment(static_body, (0, current_map.height), (current_map.width, current_map.height), 0.0),
-]
-for line in static_lines:
-    line.elasticity = 1
-    line.friction = 0.9
-space.add(*static_lines)
+def barrier(current_map, space):
+    """Adds a barrier to prevent from going outside the screen"""
+    static_body = space.static_body
+    static_lines = [
+        pymunk.Segment(static_body, (0, 0), (current_map.width, 0), 0.0),
+        pymunk.Segment(static_body, (current_map.width, 0), (current_map.width, current_map.height), 0.0),
+        pymunk.Segment(static_body, (0, 0), (0, current_map.height), 0.0),
+        pymunk.Segment(static_body, (0, current_map.height), (current_map.width, current_map.height), 0.0),
+    ]
+    for line in static_lines:
+        line.elasticity = 1
+        line.friction = 0.9
+    space.add(*static_lines)
+barrier(current_map,space)
 
-# <INSERT GENERATE BACKGROUND>
-background = pygame.Surface(screen.get_size())
-
-for y in range(0,  current_map.height):
-    for x in range(0,  current_map.width):
-        background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
-
-# <INSERT CREATE BOXES>
-#-- Create the boxes
-for x in range(0, current_map.width):
+# Generate background
+def create_background(screen, current_map, images):
+    """Creates a plain background with grass and no objects"""
+    background = pygame.Surface(screen.get_size())
     for y in range(0,  current_map.height):
+        for x in range(0,  current_map.width):
+            background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
+    return background
+background = create_background(screen, current_map, images)
+
+#-- Create the boxes
+def create_boxes():
+    """Adds boxes to the map that acts as physical objects"""
+    for x in range(0, current_map.width):
+        for y in range(0,  current_map.height):
         # Get the type of boxes
-        box_type = current_map.boxAt(x, y)
+            box_type = current_map.boxAt(x, y)
         # If the box type is not 0 (aka grass tile), create a box
-        if(box_type != 0):
+            if(box_type != 0):
             # Create a "Box" using the box_type, aswell as the x,y coordinates,
             # and the pymunk space
-            box = gameobjects.get_box_with_type(x, y, box_type, space)
-            box.shape.collision_type = box_type
-            game_objects_list.append(box)
+                box = gameobjects.get_box_with_type(x, y, box_type, space)
+                box.shape.collision_type = box_type
+                game_objects_list.append(box)
             
-
+create_boxes()
 
 # <INSERT CREATE TANKS>
 #-- Create the tanks and the bases
+def create_tanks():
 # Loop over the starting poistion
-for i in range(0, len(current_map.start_positions)):
+    for i in range(0, len(current_map.start_positions)):
     # Get the starting position of the tank "i"
-    pos = current_map.start_positions[i]
+        pos = current_map.start_positions[i]
     # Create the tank, images.tanks contains the image representing the tank
-    tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
+        tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
     #create the base at the same place as the tank
-    base = gameobjects.GameVisibleObject(pos[0], pos[1], images.bases[i])
+        base = gameobjects.GameVisibleObject(pos[0], pos[1], images.bases[i])
     # Add the tank to the list of tanks
-    tanks_list.append(tank)
+        tanks_list.append(tank)
     #Add collision_type for the tank
-    tank.shape.collision_type = gameobjects.collision_types["tank"]
+        tank.shape.collision_type = gameobjects.collision_types["tank"]
     # Add the base for the tank to the game_objects_list
-    game_objects_list.append(base)
+        game_objects_list.append(base)
     # Create ai instances for each tank except the first
     if i > 0:
         bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
         ai_list.append(bot)
 
+create_tanks()
 
 
 # <INSERT CREATE FLAG>
 #-- Create the flag
+
 flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
 game_objects_list.append(flag)
 
