@@ -31,11 +31,12 @@ FRAMERATE = 50
 
 # -- Variables
 #   Define the current level
-current_map = maps.map3
+current_map = maps.map0
 #   List of all game objects
 game_objects_list = []
 tanks_list = []
 bullet_list = []
+ai_list = []
 
 def collision_bullet_wood(arb, space, data):
     space.remove(arb.shapes[0], arb.shapes[0].body)
@@ -122,6 +123,11 @@ for i in range(0, len(current_map.start_positions)):
     tank.shape.collision_type = gameobjects.collision_types["tank"]
     # Add the base for the tank to the game_objects_list
     game_objects_list.append(base)
+    # Create ai instances for each tank except the first
+    if i > 0:
+        bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
+        ai_list.append(bot)
+
 
 
 # <INSERT CREATE FLAG>
@@ -206,7 +212,9 @@ while running:
                 print(f"Player {i+1}: {tanks_list[i].score}")
 
 
-    #
+    # Update ai
+    for ai in ai_list:
+        ai.decide()
 
     # -- Update Display
 

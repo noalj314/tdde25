@@ -110,6 +110,10 @@ class Ai:
             A bordering square is only considered accessible if it is grass
             or a wooden box.
         """
+        neighbors.append(Vec2d(coord_vec) + Vec2d(0,1))
+        neighbors.append(Vec2d(coord_vec) + Vec2d(1,0))
+        neighbors.append(Vec2d(coord_vec) + Vec2d(-1,0))
+        neighbors.append(Vec2d(coord_vec) + Vec2d(0,-1))
         neighbors = []  # Find the coordinates of the tiles' four neighbors
         return filter(self.filter_tile_neighbors, neighbors)
 
