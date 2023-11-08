@@ -54,7 +54,11 @@ class Ai:
     def decide(self):
         """ Main decision function that gets called on every tick of the game.
         """
-        pass  # To be implemented
+        path = self.find_shortest_path()
+        #for i in path:
+        #    print(i)
+        return
+        #pass  # To be implemented
 
     def maybe_shoot(self):
         """ Makes a raycast query in front of the tank. If another tank
@@ -74,29 +78,34 @@ class Ai:
             Edges are calculated as we go, using an external function.
         """
         # To be implemented
-        shortest_path = []
+        shortest_path = deque([])
         
-        queue = deque([self.tank.body.position])
+        queue = deque([self.get_tile_of_position(self.tank.body.position)])
         visited = []
-        node = queue[0]
+        parents = {}
+        
         while queue:
+            node = queue[0]
             queue.popleft()
-            if node == get_target_tile():
+            if node == self.get_target_tile():
                 return node
-            for i in get_tile_neighbors(get_tile_of_position(self.tank.body.position)):
+            for i in self.get_tile_neighbors(self.get_tile_of_position(self.tank.body.position)):
+                print(visited)
                 if not visited.__contains__(i):
                     visited.append(i)
-                    i.parent = node
+                    parents[i] = node
                     queue.append(i)
-        shortest_path.appendleft(get_target_tile())
-        add_parent(shortest_path)
+                    print(parents)
+        shortest_path.appendleft(self.get_target_tile())
+        self.add_parent(parents, shortest_path)
         return deque(shortest_path)
     
-    def add_parent(self, path):
-        if path[-1].parent is None:
+    def add_parent(self, parents, path):
+        try:
+            path.append(parents[path[-1]])
+            add_parent(parents, path)
+        except KeyError:
             return path
-        path.append(path[-1].parent)
-        add_parent(path)
         return path
 
 
