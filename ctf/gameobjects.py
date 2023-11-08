@@ -4,7 +4,6 @@ import math
 import pygame
 import pymunk
 
-import gameobjects
 import images
 
 
@@ -145,7 +144,7 @@ class Tank(GamePhysicsObject):
             # Define variable used to apply motion to the tanks
             self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
             self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
-            self.shoot_last = 60  # set last shoot to 60 since the tank has not shoot
+            self.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
 
             self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
             self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
@@ -181,7 +180,7 @@ class Tank(GamePhysicsObject):
 
         def ability_to_shoot(self):
             """ Call this function to check whether a tank can shoot or not """
-            return self.shoot_last >= 60
+            return self.shoot_last >= 50
 
         def update(self):
             """ A function to update the objects coordinates. Gets called at every tick of the game. """
@@ -245,8 +244,8 @@ class Bullet(GamePhysicsObject):
 
     def __init__(self, tank, sprite, space):
 
-        x_start = tank.body.position.x + (0.3 * math.cos(math.radians(tank.screen_orientation()-90)))
-        y_start = tank.body.position.y + (0.3 * math.sin(math.radians(tank.screen_orientation()+90)))
+        x_start = tank.body.position.x + (0.4 * math.cos(math.radians(tank.screen_orientation()-90)))
+        y_start = tank.body.position.y + (0.4 * math.sin(math.radians(tank.screen_orientation()+90)))
 
         super().__init__(x_start, y_start, tank.screen_orientation(), sprite, space, True)
         # Define variable used to apply motion to the bullet
