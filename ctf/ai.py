@@ -120,4 +120,6 @@ class Ai:
     def filter_tile_neighbors(self, coord):
         """ Used to filter the tile to check if it is a neighbor of the tank.
         """
-        return True
+        if 0 <= coord[0] <= self.MAX_X and 0 <= coord[1] <= self.MAX_Y and self.currentmap.boxAt(coord) == 0:
+            return True
+        return False

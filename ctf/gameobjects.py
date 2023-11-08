@@ -245,8 +245,8 @@ class Bullet(GamePhysicsObject):
 
     def __init__(self, tank, sprite, space):
 
-        x_start = tank.body.position.x + (0.3 * math.cos(math.radians(tank.screen_orientation()-90)))
-        y_start = tank.body.position.y + (0.3 * math.sin(math.radians(tank.screen_orientation()+90)))
+        x_start = tank.body.position.x + (0.4 * math.cos(math.radians(tank.screen_orientation()-90)))
+        y_start = tank.body.position.y + (0.4 * math.sin(math.radians(tank.screen_orientation()+90)))
 
         super().__init__(x_start, y_start, tank.screen_orientation(), sprite, space, True)
         # Define variable used to apply motion to the bullet
