@@ -80,7 +80,7 @@ def collision_handler(space, collision_type_x, collision_type_y, collision_bulle
     handle.pre_solve = collision_bullet_z
     return handle
 
-b_w_handler = collision_handler(space,4,2,collision_bullet_wood)
+b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
 b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
 b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
 b_m_handler = collision_handler(space, 4, 0, collision_bullet_wall)
@@ -101,7 +101,6 @@ def barrier(current_map, space):
         line.elasticity = 1
         line.friction = 0.9
     space.add(*static_lines)
-barrier(current_map,space)
 
 # -- Generate background
 def create_background(screen, current_map, images):
@@ -111,7 +110,6 @@ def create_background(screen, current_map, images):
         for x in range(0,  current_map.width):
             background.blit(images.grass,  (x*images.TILE_SIZE, y*images.TILE_SIZE))
     return background
-background = create_background(screen, current_map, images)
 
 # -- Create the boxes
 def create_boxes():
@@ -128,8 +126,6 @@ def create_boxes():
                 box.shape.collision_type = box_type
                 game_objects_list.append(box)
             
-create_boxes()
-
 # <INSERT CREATE TANKS>
 #-- Create the tanks and the bases
 def create_tanks():
@@ -152,14 +148,20 @@ def create_tanks():
             bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
             ai_list.append(bot)
 
-create_tanks()
 
 
 # <INSERT CREATE FLAG>
 #-- Create the flag
-flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
-game_objects_list.append(flag)
+def create_flag():
+    flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
+    game_objects_list.append(flag)
+    return flag
 
+flag = create_flag()
+barrier(current_map,space)
+background = create_background(screen, current_map, images)
+create_boxes()
+create_tanks()
 # ----- Main Loop -----#
 
 # -- Control whether the game run
@@ -224,8 +226,7 @@ while running:
         
         if tank.has_won():
             game_objects_list.remove(tank.flag)
-            flag = gameobjects.Flag(current_map.flag_position[0], current_map.flag_position[1])
-            game_objects_list.append(flag)
+            flag = create_flag()
             
             tank.body.position = tank.start_position.x, tank.start_position.y
             tank.body.angle = tank.start_orientation
@@ -237,11 +238,14 @@ while running:
 
     # Update ai
     def bots():
-        for ai in ai_list:
-            ai.get_tile_neighbors(ai.tank.body.position)
-            ai.decide()
+        #for ai in ai_list:
+        ai = ai_list[0]
+        ai.get_tile_neighbors(ai.tank.body.position)
+        ai.decide()
 
     # -- Update Display
+
+    bots()
 
     # <INSERT DISPLAY BACKGROUND>
     screen.blit(background, (0, 0))

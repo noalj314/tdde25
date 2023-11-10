@@ -54,7 +54,10 @@ class Ai:
     def decide(self):
         """ Main decision function that gets called on every tick of the game.
         """
-        path = self.find_shortest_path()
+        
+        distances = {}
+        parents = {}
+        self.lila(self.get_tile_of_position(self.tank.body.position), distances, parents)#path = self.find_shortest_path()
         #for i in path:
         #    print(i)
         return
@@ -90,7 +93,7 @@ class Ai:
             if node == self.get_target_tile():
                 return node
             for i in self.get_tile_neighbors(self.get_tile_of_position(self.tank.body.position)):
-                print(visited)
+                print(f"vistied {visited}")
                 if not visited.__contains__(i):
                     visited.append(i)
                     parents[i] = node
@@ -99,6 +102,31 @@ class Ai:
         shortest_path.appendleft(self.get_target_tile())
         self.add_parent(parents, shortest_path)
         return deque(shortest_path)
+        
+    def lila(self, tile, distances, parents):
+        for i in self.get_tile_neighbors(tile):
+            print("as")
+            try:
+                if (i in distances and distances[i] > distances[tile] + 1) or not i in distances:
+                    distances[i] = distances[tile] + 1
+                    parents[i] = tile
+                    print("aa")
+                    if self.get_target_tile == i:
+                        lista = [self.get_target_tile]
+                        new_list = self.get_parent_list(self.get_target_tile, parents, lista)
+                        return new_list
+            except KeyError:
+                print("asadasd")
+                distances[i] = 1
+            self.get_parent_list(self.get_target_tile, parents, [])
+            self.lila(i, distances, parents)
+    
+    def get_parent_list(self, tile, parent_dict, output_list):
+        output_list.append(parent_dict[tile])
+        get_parent_list(parent_dict[tile], parent_dict, output_list)
+        if parent_dict[tile] == self.get_tile_of_position(self.tank.body.position):
+            print(output_list)
+            return output_list
     
     def add_parent(self, parents, path):
         try:
@@ -152,6 +180,6 @@ class Ai:
     def filter_tile_neighbors(self, coord):
         """ Used to filter the tile to check if it is a neighbor of the tank.
         """
-        if 0 <= coord.x <= self.MAX_X and 0 <= coord.y <= self.MAX_Y and self.currentmap.boxAt(coord) == 0:
+        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and self.currentmap.boxAt(coord.x, coord.y) == 0:
             return True
         return False
