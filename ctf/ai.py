@@ -7,6 +7,7 @@ from collections import defaultdict, deque
 import pymunk
 from pymunk import Vec2d
 import gameobjects
+from numpy import transpose
 
 # NOTE: use only 'map0' during development!
 
@@ -54,13 +55,17 @@ class Ai:
     def decide(self):
         """ Main decision function that gets called on every tick of the game.
         """
+        #print(self.find_shortest_path(self.currentmap, self.grid_pos, self.get_target_tile()))
+        print(self.currentmap.boxes)
+        grid = transpose(self.currentmap.boxes)
+        print(grid)
         
-        distances = {}
-        parents = {}
-        self.lila(self.get_tile_of_position(self.tank.body.position), distances, parents)#path = self.find_shortest_path()
-        #for i in path:
-        #    print(i)
-        return
+        start_point = self.grid_pos
+        end_point = self.get_target_tile()
+        
+        shortest_path = find_shortest_path(grid, start_point, end_point)
+        self.path = shortest_path
+        self.path.popleft()
         #pass  # To be implemented
 
     def maybe_shoot(self):
@@ -76,66 +81,32 @@ class Ai:
         while True:
             yield
 
-    def find_shortest_path(self):
-        """ A simple Breadth First Search using integer coordinates as our nodes.
-            Edges are calculated as we go, using an external function.
-        """
-        # To be implemented
-        shortest_path = deque([])
-        
-        queue = deque([self.get_tile_of_position(self.tank.body.position)])
-        visited = []
-        parents = {}
-        
+    def find_shortest_path(grid, start, end):
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+        queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
+        visited = set()
+    
         while queue:
-            node = queue[0]
-            queue.popleft()
-            if node == self.get_target_tile():
-                return node
-            for i in self.get_tile_neighbors(self.get_tile_of_position(self.tank.body.position)):
-                print(f"vistied {visited}")
-                if not visited.__contains__(i):
-                    visited.append(i)
-                    parents[i] = node
-                    queue.append(i)
-                    print(parents)
-        shortest_path.appendleft(self.get_target_tile())
-        self.add_parent(parents, shortest_path)
-        return deque(shortest_path)
-        
-    def lila(self, tile, distances, parents):
-        for i in self.get_tile_neighbors(tile):
-            print("as")
-            try:
-                if (i in distances and distances[i] > distances[tile] + 1) or not i in distances:
-                    distances[i] = distances[tile] + 1
-                    parents[i] = tile
-                    print("aa")
-                    if self.get_target_tile == i:
-                        lista = [self.get_target_tile]
-                        new_list = self.get_parent_list(self.get_target_tile, parents, lista)
-                        return new_list
-            except KeyError:
-                print("asadasd")
-                distances[i] = 1
-            self.get_parent_list(self.get_target_tile, parents, [])
-            self.lila(i, distances, parents)
+            (current, path) = queue.popleft()
+            x, y = current
     
-    def get_parent_list(self, tile, parent_dict, output_list):
-        output_list.append(parent_dict[tile])
-        get_parent_list(parent_dict[tile], parent_dict, output_list)
-        if parent_dict[tile] == self.get_tile_of_position(self.tank.body.position):
-            print(output_list)
-            return output_list
+            if current == end:
+                return path
     
-    def add_parent(self, parents, path):
-        try:
-            path.append(parents[path[-1]])
-            add_parent(parents, path)
-        except KeyError:
-            return path
-        return path
-
+            if current in visited:
+                continue
+    
+            visited.add(current)
+    
+            for dx, dy in directions:
+                new_x, new_y = x + dx, y + dy
+    
+                if is_valid(new_x, new_y, grid):
+                    new_pos = Vec2d(new_x, new_y)
+                    queue.append((new_pos, path + deque([new_pos])))
+    
+        return deque()  # No valid path found
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
@@ -183,3 +154,37 @@ class Ai:
         if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and self.currentmap.boxAt(coord.x, coord.y) == 0:
             return True
         return False
+    
+    
+    
+def is_valid(x, y, grid):
+    return 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] == 0
+
+def find_shortest_path(grid, start, end):
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
+    visited = set()
+
+    while queue:
+        (current, path) = queue.popleft()
+        x, y = current
+
+        if current == end:
+            return path
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        for dx, dy in directions:
+            new_x, new_y = x + dx, y + dy
+
+            if is_valid(new_x, new_y, grid):
+                new_pos = Vec2d(new_x, new_y)
+                queue.append((new_pos, path + deque([new_pos])))
+
+    return deque()  # No valid path found
+
+

@@ -168,6 +168,7 @@ create_tanks()
 running = True
 
 skip_update = 0
+skip_update_2 = 0
 variabel = 0
 
 while running:
@@ -234,18 +235,29 @@ while running:
             tank.score += 1
             for i in range(len(tanks_list)):
                 print(f"Player {i+1}: {tanks_list[i].score}")
+            for i in range(0, len(current_map.start_positions)):
+                if i > 0:
+                    ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
 
 
     # Update ai
     def bots():
-        #for ai in ai_list:
-        ai = ai_list[0]
-        ai.get_tile_neighbors(ai.tank.body.position)
-        ai.decide()
+        for ai in ai_list:
+            ai.update_grid_pos()
+            ai.decide()
+            try:
+                ai.tank.body.position = ai.path[0].x + 0.5, ai.path[0].y + 0.5
+            except IndexError:
+                print(ai, "says ???")
+            
+            print(ai.tank.body.position, ai.path)
 
     # -- Update Display
-
-    bots()
+    if skip_update_2 == 0:
+        bots()
+        skip_update_2 = 10
+    else:
+        skip_update_2 -= 1
 
     # <INSERT DISPLAY BACKGROUND>
     screen.blit(background, (0, 0))
