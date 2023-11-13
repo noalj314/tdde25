@@ -65,7 +65,7 @@ class Ai:
         
         shortest_path = find_shortest_path(grid, start_point, end_point)
         self.path = shortest_path
-        self.path.popleft()
+        #self.path.popleft()
         #pass  # To be implemented
 
     def maybe_shoot(self):

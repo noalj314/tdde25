@@ -246,7 +246,7 @@ while running:
             ai.update_grid_pos()
             ai.decide()
             try:
-                ai.tank.body.position = ai.path[0].x + 0.5, ai.path[0].y + 0.5
+                ai.tank.body.position = ai.path[1].x + 0.5, ai.path[1].y + 0.5
             except IndexError:
                 print(ai, "says ???")
             
