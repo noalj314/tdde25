@@ -50,34 +50,50 @@ def remove_shape(space, shape, shape2=None):
     if shape2:
         space.remove(shape2,shape2.body)
 def remove_from_list(lst, obj):
-    """Remove an object from its list"""
+    """Remove an object from its list."""
     lst.remove(obj)
 
 def reset_tank(tank):
-    "Reset the tanks posisiton to its starting posistion"
+    """Reset the tanks position to its starting position."""
     tank.body.position = tank.start_position.x, tank.start_position.y
     tank.body.angle = tank.start_orientation
 
 def collision_bullet_wood(arb, space, data):
+    """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
     remove_shape(space,arb.shapes[0], arb.shapes[1])
-    remove_from_list(bullet_list,arb.shapes[0].parent)
-    remove_from_list(game_objects_list,arb.shapes[1].parent)
+    try:
+        remove_from_list(bullet_list,arb.shapes[0].parent)
+    except ValueError:
+        print("Unable to remove bullet from bullet_list when hit wood")
+    try:
+        remove_from_list(game_objects_list,arb.shapes[1].parent)
+    except ValueError:
+        print("Unable to remove box from game_objects_list")
     return True
 
 def collision_bullet_wall(arb, space, data):
+    """Triggered when bullet and wall collide, removing the bullet from the space and bullet_list."""
     remove_shape(space, arb.shapes[0])
-    remove_from_list(bullet_list, arb.shapes[0].parent)
+    try:
+        remove_from_list(bullet_list, arb.shapes[0].parent)
+    except ValueError:
+        print("Unable to remove bullet from bullet_list when hit wall")
     return True
 
 def collision_bullet_tank(arb, space, data):
+    """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
     remove_shape(space,arb.shapes[0])
-    remove_from_list(bullet_list, arb.shapes[0].parent)
+    try:
+        remove_from_list(bullet_list, arb.shapes[0].parent)
+    except ValueError:
+        print("Unable to remove bullet from bullet_list when hit wall")
     reset_tank(arb.shapes[1].parent)
     return True
 
-def collision_handler(space, collision_type_x, collision_type_y, collision_bullet_z):
-    handle = space.add_collision_handler(collision_type_x, collision_type_y)
-    handle.pre_solve = collision_bullet_z
+def collision_handler(space, object1, object2, collision_function):
+    """Creates a CollisionHandler with two collision_types and a function which triggers on contact."""
+    handle = space.add_collision_handler(object1, object2)
+    handle.pre_solve = collision_function
     return handle
 
 b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
