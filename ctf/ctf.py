@@ -32,10 +32,12 @@ import maps
 import sounds
 
     # -- Constants
+
 FRAMERATE = 50
 
     # -- Variables
     #   Define the current level
+multiplayer = True if 'hot--multiplayer' in sys.argv else False
 current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
@@ -165,10 +167,10 @@ def create_tanks():
     # Add the base for the tank to the game_objects_list
         game_objects_list.append(base)
     # Create ai instances for each tank except the first
-        if '--hot-multiplayer' in sys.argv and i > 1:
+        if multiplayer and i > 1:
             bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
             ai_list.append(bot)
-        elif '--singleplayer' in sys.argv and i > 0:
+        elif not multiplayer and i > 0:
             bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
             ai_list.append(bot)
 
@@ -210,7 +212,7 @@ while running:
                 tanks_list[0].turn_left()
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
-            elif (event.key == K_KP_ENTER) and tanks_list[0].ability_to_shoot():
+            elif (event.key == K_RETURN) and tanks_list[0].ability_to_shoot():
                 bullet_list.append(tanks_list[0].shoot(space))
         if (event.type == KEYUP):
             if event.key == K_UP:
@@ -221,7 +223,7 @@ while running:
                 tanks_list[0].stop_turning()
             elif (event.key == K_RIGHT):
                 tanks_list[0].stop_turning()
-        if '--hot-multiplayer' in sys.argv:
+        if multiplayer:
             if (event.type == KEYDOWN):
                 if event.key == K_w:
                     tanks_list[1].accelerate()
@@ -280,14 +282,9 @@ while running:
             for i in range(len(tanks_list)):
                 print(f"Player {i+1}: {tanks_list[i].score}")
             for i in range(0, len(current_map.start_positions)):
-                if '--singleplayer' in sys.argv and i > 0:
-                    print(f'{len(current_map.start_positions)}röv') ##4 alltid
-
+                if not multiplayer and i > 0:
                     ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
-                elif '--hot-multiplayer' in sys.argv and i > 0:
-                    print(f'{len(current_map.start_positions)}röv')
-                    print(f'{len(ai_list)}balle')
-                    print(f'{i} kuk')
+                elif multiplayer and i > 0:
                     ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
 
 
@@ -301,7 +298,7 @@ while running:
             except IndexError:
                 print(ai, "says ???")
             
-           # print(ai.tank.body.position, ai.path)
+                print(ai.tank.body.position, ai.path)
 
     # -- Update Display
     if skip_update_2 == 0:
