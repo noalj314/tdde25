@@ -56,9 +56,9 @@ class Ai:
         """ Main decision function that gets called on every tick of the game.
         """
         #print(self.find_shortest_path(self.currentmap, self.grid_pos, self.get_target_tile()))
-        print(self.currentmap.boxes)
+        #print(self.currentmap.boxes)
         grid = transpose(self.currentmap.boxes)
-        print(grid)
+       # print(grid)
         
         start_point = self.grid_pos
         end_point = self.get_target_tile()

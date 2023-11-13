@@ -37,7 +37,7 @@ FRAMERATE = 50
 
     # -- Variables
     #   Define the current level
-multiplayer = True if 'hot--multiplayer' in sys.argv else False
+multiplayer = True if '--hot-multiplayer' in sys.argv else False
 current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
