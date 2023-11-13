@@ -21,7 +21,8 @@ flag_capture_sound = load_sound('flag_capture.wav')  # Sound of capturing the fl
 
 movement_sound = load_sound('movement.wav')  # Sound of a tank moving
 
-start_sound = load_sound('start_sound.wav')  # Sound of the game starting
-
 tankshot_sound = load_sound('tankshot.wav')  # Sound of a tank shooting
 
+win_sound = load_sound('win.wav')  # Sound of a tank shooting
+
+engine_sound = load_sound('engineidle.mp3')

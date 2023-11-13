@@ -193,7 +193,6 @@ variabel = 0
 
 while running:
     # -- Handle the events
-
     for event in pygame.event.get():
         # Check if we receive a QUIT event (for instance, if the user press the
         # close button of the wiendow) or if the user press the escape key.
@@ -246,6 +245,7 @@ while running:
         tank.post_update()
         
         if tank.has_won():
+            sounds.win_sound.play() # play win sound
             game_objects_list.remove(tank.flag)
             flag = create_flag()
             

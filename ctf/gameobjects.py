@@ -154,15 +154,32 @@ class Tank(GamePhysicsObject):
 
         def accelerate(self):
             """ Call this function to make the tank move forward. """
+            sounds.movement_sound.stop()
+            sounds.engine_sound.stop()
+            sounds.movement_sound.play()
+            sounds.engine_sound.set_volume(0.2)
+            sounds.engine_sound.play()
             self.acceleration = 1
 
         def stop_moving(self):
             """ Call this function to make the tank stop moving. """
+            sounds.movement_sound.stop()
+            sounds.engine_sound.stop()
+
+            sounds.engine_sound.set_volume(0.2)
+            sounds.engine_sound.play()
+
             self.acceleration = 0
             self.body.velocity = pymunk.Vec2d.zero()
 
         def decelerate(self):
             """ Call this function to make the tank move backward. """
+            sounds.movement_sound.stop()
+            sounds.engine_sound.stop()
+            sounds.movement_sound.play()
+            sounds.engine_sound.set_volume(0.2)
+            sounds.engine_sound.play()
+
             self.acceleration = -1
 
         def turn_left(self):
