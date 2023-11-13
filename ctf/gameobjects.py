@@ -3,7 +3,7 @@
 import math
 import pygame
 import pymunk
-
+import sounds
 import images
 
 
@@ -221,6 +221,7 @@ class Tank(GamePhysicsObject):
                     self.flag = flag
                     flag.is_on_tank = True
                     self.max_speed = Tank.FLAG_MAX_SPEED
+                    sounds.flag_capture_sound.play()
 
         def has_won(self):
             """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
@@ -230,6 +231,7 @@ class Tank(GamePhysicsObject):
             """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
+                sounds.tankshot_sound.play()
                 bullet = Bullet(self, images.bullet, space)
                 bullet.shape.collision_type = collision_types["bullet"]
                 return bullet

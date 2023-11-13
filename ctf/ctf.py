@@ -28,6 +28,7 @@ import ai
 import images
 import gameobjects
 import maps
+import sounds
 
     # -- Constants
 FRAMERATE = 50
@@ -61,6 +62,7 @@ def reset_tank(tank):
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
     remove_shape(space,arb.shapes[0], arb.shapes[1])
+    sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list,arb.shapes[0].parent)
     except ValueError:
@@ -74,6 +76,7 @@ def collision_bullet_wood(arb, space, data):
 def collision_bullet_wall(arb, space, data):
     """Triggered when bullet and wall collide, removing the bullet from the space and bullet_list."""
     remove_shape(space, arb.shapes[0])
+    sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
@@ -83,6 +86,7 @@ def collision_bullet_wall(arb, space, data):
 def collision_bullet_tank(arb, space, data):
     """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
     remove_shape(space,arb.shapes[0])
+    sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
