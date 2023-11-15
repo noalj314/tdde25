@@ -283,7 +283,7 @@ while running:
             for i in range(0, len(current_map.start_positions)):
                 if not multiplayer and i > 0:
                     ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
-                elif multiplayer and i > 0:
+                elif multiplayer and i > 1:
                     ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
 
 

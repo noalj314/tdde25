@@ -61,7 +61,7 @@ class Ai:
             try:
                 self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
             except IndexError:
-                ""
+                pass
             self.prev_flag_pos = self.get_target_tile()
         if self.next_coord.x + 0.05 < self.tank.body.position[0]:
             self.choose_direction(math.pi/2)
@@ -77,7 +77,7 @@ class Ai:
             try:
                 self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
             except IndexError:
-                ""
+                pass
             
     def choose_direction(self, angle):
         if ((self.tank.body.angle) % (2 * math.pi) < (angle) % (2 * math.pi) - MIN_ANGLE_DIF and not (angle == 3*math.pi/2 and self.tank.body.angle == 0)) or (self.tank.body.angle) % (2 * math.pi) > (angle) % (2 * math.pi) - MIN_ANGLE_DIF + math.pi:
