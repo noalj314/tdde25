@@ -45,6 +45,7 @@ game_objects_list = []
 tanks_list = []
 bullet_list = []
 ai_list = []
+hit_points = {}
 
 
 def remove_shape(space, shape, shape2=None):
@@ -61,28 +62,43 @@ def reset_tank(tank):
     tank.body.angle = tank.start_orientation
     tank.body.position = tank.start_position.x, tank.start_position.y
 
+
 def drop_flag(tank,flag):
+    """Drops the flag at the tanks current posistion"""
     gameobjects.Flag(tank.body.position.x, tank.body.position.y)
     tank.flag = None
     flag.is_on_tank = False
     return flag
 
+def hit(item):
+    """Update the dictionary hit_points if a tank or wood wall is hit"""
+    if item not in hit_points:
+        hit_points[item] = 1
+    else:
+        hit_points[item] += 1
+    return hit_points
 
 #def hit():
 
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
-    remove_shape(space,arb.shapes[0], arb.shapes[1])
+    remove_shape(space,arb.shapes[0])
+
     sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list,arb.shapes[0].parent)
     except ValueError:
         print("Unable to remove bullet from bullet_list when hit wood")
-    try:
-        remove_from_list(game_objects_list,arb.shapes[1].parent)
-    except ValueError:
-        print("Unable to remove box from game_objects_list")
-    return True
+    hit(arb.shapes[1].parent)
+    if hit_points[arb.shapes[1].parent] == 2:
+        remove_shape(space, arb.shapes[1])
+        try:
+            remove_from_list(game_objects_list,arb.shapes[1].parent)
+        except ValueError:
+            print("Unable to remove box from game_objects_list")
+        return True
+    else:
+        return False
 
 def collision_bullet_wall(arb, space, data):
     """Triggered when bullet and wall collide, removing the bullet from the space and bullet_list."""
@@ -96,16 +112,24 @@ def collision_bullet_wall(arb, space, data):
 
 def collision_bullet_tank(arb, space, data):
     """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
+    tank = arb.shapes[1].parent
     remove_shape(space, arb.shapes[0])
     sounds.explosion_sound.play()
-    if arb.shapes[1].parent.flag:
-        drop_flag(arb.shapes[1].parent, flag)
+
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
         print("Unable to remove bullet from bullet_list when hit wall")
-    reset_tank(arb.shapes[1].parent)
-    return True
+    if gameobjects.Tank.ability_to_die(tank):
+        hit(tank)
+    if hit_points[tank] == 2:
+        if tank.flag:
+            drop_flag(tank, flag)
+        reset_tank(tank)
+        hit_points[tank] = 0
+        return True
+    else:
+        return False
 
 def collision_handler(space, object1, object2, collision_function):
     """Creates a CollisionHandler with two collision_types and a function which triggers on contact."""
@@ -284,11 +308,10 @@ while running:
             sounds.win_sound.play() # play win sound
             game_objects_list.remove(tank.flag)
             flag = create_flag()
-            
-            tank.body.position = tank.start_position.x, tank.start_position.y
-            tank.body.angle = tank.start_orientation
             tank.flag = None
             tank.score += 1
+            for item in tanks_list:
+                reset_tank(item)
             for i in range(len(tanks_list)):
                 print(f"Player {i+1}: {tanks_list[i].score}")
             for i in range(0, len(current_map.start_positions)):
