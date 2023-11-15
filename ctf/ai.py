@@ -22,12 +22,10 @@ def angle_between_vectors(vec1, vec2):
     vec = vec.perpendicular()
     return vec.angle
 
-
 def periodic_difference_of_angles(angle1, angle2):
     """ Compute the difference between two angles.
     """
     return (angle1 % (2 * math.pi)) - (angle2 % (2 * math.pi))
-
 
 class Ai:
     """ A simple ai that finds the shortest path to the target using
