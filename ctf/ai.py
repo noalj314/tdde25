@@ -55,8 +55,8 @@ class Ai:
         if self.prev_flag_pos != self.get_target_tile():
             self.update_grid_pos()
             self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
-            self.path.popleft()
             try:
+                self.path.popleft()
                 self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
             except IndexError:
                 pass
