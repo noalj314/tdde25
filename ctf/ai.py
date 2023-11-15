@@ -34,10 +34,11 @@ class Ai:
     a breadth first search. Also capable of shooting other tanks and or wooden
     boxes. """
 
-    def __init__(self, tank, game_objects_list, tanks_list, space, currentmap):
+    def __init__(self, tank, game_objects_list, tanks_list, bullet_list, space, currentmap):
         self.tank = tank
         self.game_objects_list = game_objects_list
         self.tanks_list = tanks_list
+        self.bullet_list = bullet_list
         self.space = space
         self.currentmap = currentmap
         self.flag = None
@@ -54,6 +55,7 @@ class Ai:
         self.grid_pos = self.get_tile_of_position((self.tank.body.position.x, self.tank.body.position.y))
         
     def decide(self):
+        self.maybe_shoot()
         if self.prev_flag_pos != self.get_target_tile():
             self.update_grid_pos()
             self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
@@ -95,6 +97,22 @@ class Ai:
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot.
         """
+        angle = self.tank.body.angle + math.pi/2
+
+        x_start = self.tank.body.position.x + (0.4 * math.cos(angle-90))
+        y_start = self.tank.body.position.y + (0.4 * math.sin(angle+90))
+
+        x_end = self.tank.body.position.x + (max(self.max_x,self.max_y) * math.cos(math.radians(angle-90)))
+        y_end = self.tank.body.position.y + (max(self.max_x,self.max_y) * math.sin(math.radians(angle+90)))
+
+        res = self.space.segment_query_first((x_start,y_start), (x_end,y_end), 0.3, pymunk.ShapeFilter())
+        
+        try:
+            if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape,'parent'):            
+                if isinstance(res.shape.parent,gameobjects.Tank) or isinstance(res.shape.parent,gameobjects.Box):
+                    self.tank.shoot(self.space,self.bullet_list)
+        except AttributeError:
+            print("Fel")
         pass  # To be implemented
 
     def find_shortest_path(self, grid, start, end):
