@@ -58,8 +58,17 @@ def remove_from_list(lst, obj):
 
 def reset_tank(tank):
     """Reset the tanks position to its starting position."""
-    tank.body.position = tank.start_position.x, tank.start_position.y
     tank.body.angle = tank.start_orientation
+    tank.body.position = tank.start_position.x, tank.start_position.y
+
+def drop_flag(tank,flag):
+    gameobjects.Flag(tank.body.position.x, tank.body.position.y)
+    tank.flag = None
+    flag.is_on_tank = False
+    return flag
+
+
+#def hit():
 
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
@@ -87,8 +96,10 @@ def collision_bullet_wall(arb, space, data):
 
 def collision_bullet_tank(arb, space, data):
     """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
-    remove_shape(space,arb.shapes[0])
+    remove_shape(space, arb.shapes[0])
     sounds.explosion_sound.play()
+    if arb.shapes[1].parent.flag:
+        drop_flag(arb.shapes[1].parent, flag)
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
@@ -105,7 +116,7 @@ def collision_handler(space, object1, object2, collision_function):
 b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
 b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
 b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
-b_m_handler = collision_handler(space, 4, 0, collision_bullet_wall)
+b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall)
 b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
 
 
