@@ -33,9 +33,37 @@ import sounds
 
     # -- Constants
 FRAMERATE = 50
-
+screen = pygame.display.set_mode((800, 600))
     # -- Variables
     #   Define the current level
+def welcome_screen():
+    not_playing = True
+    while not_playing:
+        screen.fill(pygame.Color("black"))
+        text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(400,300))
+        map0 = map_options(screen, 'map0', (100, 50))
+        map_options(screen, 'map1', (100, 100))
+        map_options(screen, 'map2', (100, 150))
+        map_options(screen, 'map3', (100, 200))
+      #  for event in pygame.event.get():
+           # mouse_pos = event.pos
+           # if event.type == pygame.MOUSEBUTTONDOWN:
+
+
+        pygame.display.flip()
+
+
+
+def text_creator(screen, size, text, colour, pos):
+    font = pygame.font.Font(None, size)
+    text_create = font.render(text, True, colour)
+    screen.blit(text_create, pos)
+
+def map_options(screen, map, pos):
+    text_creator(screen, 20, map, pygame.Color('white'), pos)
+welcome_screen()
+
+
 multiplayer = True if '--hot-multiplayer' in sys.argv else False
 current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
