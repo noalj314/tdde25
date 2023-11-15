@@ -259,21 +259,19 @@ while running:
     # Update ai
     def bots():
         for ai in ai_list:
-            ai.update_grid_pos()
+            #ai = ai_list[2]
+            #ai.update_grid_pos()
             ai.decide()
-            try:
-                ai.tank.body.position = ai.path[1].x + 0.5, ai.path[1].y + 0.5
-            except IndexError:
-                print(ai, "says ???")
+            #try:
+                #ai.tank.body.position = ai.path[1].x + 0.5, ai.path[1].y + 0.5
+            #except IndexError:
+                #""
+                #print(ai, "says ???")
             
-            print(ai.tank.body.position, ai.path)
+            #print(ai.tank.body.position, ai.path)
 
     # -- Update Display
-    if skip_update_2 == 0:
-        bots()
-        skip_update_2 = 10
-    else:
-        skip_update_2 -= 1
+    bots()
 
     # <INSERT DISPLAY BACKGROUND>
     screen.blit(background, (0, 0))

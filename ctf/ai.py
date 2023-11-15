@@ -45,28 +45,51 @@ class Ai:
         self.max_y = currentmap.height - 1
 
         self.path = deque()
-        self.move_cycle = self.move_cycle_gen()
         self.update_grid_pos()
+        self.next_coord = self.tank.body.position
+        self.prev_flag_pos = None
 
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
-        self.grid_pos = self.get_tile_of_position(self.tank.body.position)
-
+        self.grid_pos = self.get_tile_of_position((self.tank.body.position.x, self.tank.body.position.y))
+        
     def decide(self):
-        """ Main decision function that gets called on every tick of the game.
-        """
-        #print(self.find_shortest_path(self.currentmap, self.grid_pos, self.get_target_tile()))
-        print(self.currentmap.boxes)
-        grid = transpose(self.currentmap.boxes)
-        print(grid)
-        
-        start_point = self.grid_pos
-        end_point = self.get_target_tile()
-        
-        shortest_path = find_shortest_path(grid, start_point, end_point)
-        self.path = shortest_path
-        #self.path.popleft()
-        #pass  # To be implemented
+        if self.prev_flag_pos != self.get_target_tile():
+            self.update_grid_pos()
+            self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
+            self.path.popleft()
+            try:
+                self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
+            except IndexError:
+                ""
+            self.prev_flag_pos = self.get_target_tile()
+        if self.next_coord.x + 0.05 < self.tank.body.position[0]:
+            self.choose_direction(math.pi/2)
+        elif self.next_coord.x - 0.05 > self.tank.body.position[0]:
+            self.choose_direction(3*math.pi/2)
+        elif self.next_coord.y + 0.05 < self.tank.body.position[1]:
+            self.choose_direction(math.pi)
+        elif self.next_coord.y - 0.05 > self.tank.body.position[1]:
+            self.choose_direction(0)
+        else:
+            self.tank.stop_moving()
+            self.tank.body.position = self.next_coord
+            try:
+                self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
+            except IndexError:
+                ""
+            
+    def choose_direction(self, angle):
+        if ((self.tank.body.angle) % (2 * math.pi) < (angle) % (2 * math.pi) - MIN_ANGLE_DIF and not (angle == 3*math.pi/2 and self.tank.body.angle == 0)) or (self.tank.body.angle) % (2 * math.pi) > (angle) % (2 * math.pi) - MIN_ANGLE_DIF + math.pi:
+            self.tank.stop_moving()
+            self.tank.turn_right()
+        elif (self.tank.body.angle) % (2 * math.pi) > (angle) % (2 * math.pi) + MIN_ANGLE_DIF or (self.tank.body.angle) % (2 * math.pi) < (angle) % (2 * math.pi) + MIN_ANGLE_DIF - math.pi:
+            self.tank.stop_moving()
+            self.tank.turn_left()
+        else:
+            self.tank.stop_turning()
+            self.tank.body.angle = angle
+            self.tank.accelerate()
 
     def maybe_shoot(self):
         """ Makes a raycast query in front of the tank. If another tank
@@ -74,39 +97,25 @@ class Ai:
         """
         pass  # To be implemented
 
-    def move_cycle_gen(self):
-        """ A generator that iteratively goes through all the required steps
-            to move to our goal.
+    def find_shortest_path(self, grid, start, end):
+        """ A simple Breadth First Search using integer coordinates as our nodes.
+            Edges are calculated as we go, using an external function.
         """
-        while True:
-            yield
-
-    def find_shortest_path(grid, start, end):
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    
         queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
         visited = set()
-    
+        path = deque()
+        print(queue)
         while queue:
-            (current, path) = queue.popleft()
-            x, y = current
-    
-            if current == end:
-                return path
-    
-            if current in visited:
+            (node, path) = queue.popleft()
+            if node in visited:
                 continue
-    
-            visited.add(current)
-    
-            for dx, dy in directions:
-                new_x, new_y = x + dx, y + dy
-    
-                if is_valid(new_x, new_y, grid):
-                    new_pos = Vec2d(new_x, new_y)
-                    queue.append((new_pos, path + deque([new_pos])))
-    
-        return deque()  # No valid path found
+            visited.add(node)
+            
+            for neighbour in self.get_tile_neighbors(node):
+                new_pos = Vec2d(neighbour.x, neighbour.y)
+                queue.append((new_pos, path + deque([new_pos])))
+        return path  # No valid path found
+
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,
@@ -160,31 +169,5 @@ class Ai:
 def is_valid(x, y, grid):
     return 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] == 0
 
-def find_shortest_path(grid, start, end):
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-    queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
-    visited = set()
-
-    while queue:
-        (current, path) = queue.popleft()
-        x, y = current
-
-        if current == end:
-            return path
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-
-        for dx, dy in directions:
-            new_x, new_y = x + dx, y + dy
-
-            if is_valid(new_x, new_y, grid):
-                new_pos = Vec2d(new_x, new_y)
-                queue.append((new_pos, path + deque([new_pos])))
-
-    return deque()  # No valid path found
 
 

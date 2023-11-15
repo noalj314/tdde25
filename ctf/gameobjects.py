@@ -7,7 +7,7 @@ import pymunk
 import images
 
 
-DEBUG = False  # Change this to set it in debug mode
+DEBUG = True  # Change this to set it in debug mode
 
 collision_types = {
     "wall": 1,      #Walls stop tanks and destroy bullets
