@@ -101,21 +101,29 @@ class Ai:
         """ A simple Breadth First Search using integer coordinates as our nodes.
             Edges are calculated as we go, using an external function.
         """
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
         queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
         visited = set()
-        path = deque()
-        print(queue)
+    
         while queue:
-            (node, path) = queue.popleft()
-            if node in visited:
+            (current, path) = queue.popleft()
+            x, y = current
+            if current == end:
+                return path
+    
+            if current in visited:
                 continue
-            visited.add(node)
-            
-            for neighbour in self.get_tile_neighbors(node):
-                new_pos = Vec2d(neighbour.x, neighbour.y)
-                queue.append((new_pos, path + deque([new_pos])))
-        return path  # No valid path found
-
+    
+            visited.add(current)
+    
+            for dx, dy in directions:
+                new_x, new_y = x + dx, y + dy
+    
+                if is_valid(new_x, new_y, grid):
+                    new_pos = Vec2d(new_x, new_y)
+                    queue.append((new_pos, path + deque([new_pos])))
+        return deque()  # No valid path found
 
     def get_target_tile(self):
         """ Returns position of the flag if we don't have it. If we do have the flag,

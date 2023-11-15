@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
+import sys
 
 # ----- Initialisation ----- #
 
@@ -28,12 +29,14 @@ import ai
 import images
 import gameobjects
 import maps
+import sounds
 
     # -- Constants
 FRAMERATE = 50
 
     # -- Variables
     #   Define the current level
+multiplayer = True if '--hot-multiplayer' in sys.argv else False
 current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
@@ -61,6 +64,7 @@ def reset_tank(tank):
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
     remove_shape(space,arb.shapes[0], arb.shapes[1])
+    sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list,arb.shapes[0].parent)
     except ValueError:
@@ -74,6 +78,7 @@ def collision_bullet_wood(arb, space, data):
 def collision_bullet_wall(arb, space, data):
     """Triggered when bullet and wall collide, removing the bullet from the space and bullet_list."""
     remove_shape(space, arb.shapes[0])
+    sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
@@ -83,6 +88,7 @@ def collision_bullet_wall(arb, space, data):
 def collision_bullet_tank(arb, space, data):
     """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
     remove_shape(space,arb.shapes[0])
+    sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
@@ -160,10 +166,12 @@ def create_tanks():
     # Add the base for the tank to the game_objects_list
         game_objects_list.append(base)
     # Create ai instances for each tank except the first
-        if i > 0:
+        if multiplayer and i > 1:
             bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
             ai_list.append(bot)
-
+        elif not multiplayer and i > 0:
+            bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
+            ai_list.append(bot)
 
 
 # <INSERT CREATE FLAG>
@@ -189,7 +197,6 @@ variabel = 0
 
 while running:
     # -- Handle the events
-
     for event in pygame.event.get():
         # Check if we receive a QUIT event (for instance, if the user press the
         # close button of the wiendow) or if the user press the escape key.
@@ -204,7 +211,7 @@ while running:
                 tanks_list[0].turn_left()
             elif (event.key == K_RIGHT):
                 tanks_list[0].turn_right()
-            elif (event.key == K_SPACE) and tanks_list[0].ability_to_shoot():
+            elif (event.key == K_RETURN) and tanks_list[0].ability_to_shoot():
                 bullet_list.append(tanks_list[0].shoot(space))
         if (event.type == KEYUP):
             if event.key == K_UP:
@@ -215,6 +222,27 @@ while running:
                 tanks_list[0].stop_turning()
             elif (event.key == K_RIGHT):
                 tanks_list[0].stop_turning()
+        if multiplayer:
+            if (event.type == KEYDOWN):
+                if event.key == K_w:
+                    tanks_list[1].accelerate()
+                elif (event.key == K_s):
+                    tanks_list[1].decelerate()
+                elif (event.key == K_a):
+                    tanks_list[1].turn_left()
+                elif (event.key == K_d):
+                    tanks_list[1].turn_right()
+                elif (event.key == K_SPACE) and tanks_list[1].ability_to_shoot():
+                    bullet_list.append(tanks_list[1].shoot(space))
+            if (event.type == KEYUP):
+                if event.key == K_w:
+                    tanks_list[1].stop_moving()
+                elif (event.key == K_s):
+                    tanks_list[1].stop_moving()
+                elif (event.key == K_a):
+                    tanks_list[1].stop_turning()
+                elif (event.key == K_d):
+                    tanks_list[1].stop_turning()
 
     # -- Update physics
     if skip_update == 0:
@@ -242,6 +270,7 @@ while running:
         tank.post_update()
         
         if tank.has_won():
+            sounds.win_sound.play() # play win sound
             game_objects_list.remove(tank.flag)
             flag = create_flag()
             
@@ -252,8 +281,10 @@ while running:
             for i in range(len(tanks_list)):
                 print(f"Player {i+1}: {tanks_list[i].score}")
             for i in range(0, len(current_map.start_positions)):
-                if i > 0:
+                if not multiplayer and i > 0:
                     ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
+                elif multiplayer and i > 0:
+                    ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
 
 
     # Update ai

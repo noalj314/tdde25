@@ -3,11 +3,11 @@
 import math
 import pygame
 import pymunk
-
+import sounds
 import images
 
 
-DEBUG = True  # Change this to set it in debug mode
+DEBUG = False  # Change this to set it in debug mode
 
 collision_types = {
     "wall": 1,      #Walls stop tanks and destroy bullets
@@ -154,15 +154,32 @@ class Tank(GamePhysicsObject):
 
         def accelerate(self):
             """ Call this function to make the tank move forward. """
+            sounds.movement_sound.stop()
+            sounds.engine_sound.stop()
+            sounds.movement_sound.play()
+            sounds.engine_sound.set_volume(0.2)
+            sounds.engine_sound.play()
             self.acceleration = 1
 
         def stop_moving(self):
             """ Call this function to make the tank stop moving. """
+            sounds.movement_sound.stop()
+            sounds.engine_sound.stop()
+
+            sounds.engine_sound.set_volume(0.2)
+            sounds.engine_sound.play()
+
             self.acceleration = 0
             self.body.velocity = pymunk.Vec2d.zero()
 
         def decelerate(self):
             """ Call this function to make the tank move backward. """
+            sounds.movement_sound.stop()
+            sounds.engine_sound.stop()
+            sounds.movement_sound.play()
+            sounds.engine_sound.set_volume(0.2)
+            sounds.engine_sound.play()
+
             self.acceleration = -1
 
         def turn_left(self):
@@ -221,6 +238,7 @@ class Tank(GamePhysicsObject):
                     self.flag = flag
                     flag.is_on_tank = True
                     self.max_speed = Tank.FLAG_MAX_SPEED
+                    sounds.flag_capture_sound.play()
 
         def has_won(self):
             """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
@@ -230,6 +248,7 @@ class Tank(GamePhysicsObject):
             """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
+                sounds.tankshot_sound.play()
                 bullet = Bullet(self, images.bullet, space)
                 bullet.shape.collision_type = collision_types["bullet"]
                 return bullet
