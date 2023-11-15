@@ -12,7 +12,7 @@ from numpy import transpose
 # NOTE: use only 'map0' during development!
 
 MIN_ANGLE_DIF = math.radians(3)   # 3 degrees, a bit more than we can turn each tick
-
+MIN_XY_DIF = 0.05
 
 def angle_between_vectors(vec1, vec2):
     """ Since Vec2d operates in a cartesian coordinate space we have to
@@ -61,13 +61,13 @@ class Ai:
             except IndexError:
                 pass
             self.prev_flag_pos = self.get_target_tile()
-        if self.next_coord.x + 0.05 < self.tank.body.position[0]:
+        if self.next_coord.x + MIN_XY_DIF < self.tank.body.position[0]:
             self.choose_direction(math.pi/2)
-        elif self.next_coord.x - 0.05 > self.tank.body.position[0]:
+        elif self.next_coord.x - MIN_XY_DIF > self.tank.body.position[0]:
             self.choose_direction(3*math.pi/2)
-        elif self.next_coord.y + 0.05 < self.tank.body.position[1]:
+        elif self.next_coord.y + MIN_XY_DIF < self.tank.body.position[1]:
             self.choose_direction(math.pi)
-        elif self.next_coord.y - 0.05 > self.tank.body.position[1]:
+        elif self.next_coord.y - MIN_XY_DIF > self.tank.body.position[1]:
             self.choose_direction(0)
         else:
             #self.tank.stop_moving()
