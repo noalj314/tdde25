@@ -38,3 +38,4 @@ source ctf-env/bin/activate
 pip install pymunk==6.5.1
 pip install pygame==2.5.0
 pip install pycodestyle
+pip install numpy

@@ -70,7 +70,7 @@ class Ai:
         elif self.next_coord.y - 0.05 > self.tank.body.position[1]:
             self.choose_direction(0)
         else:
-            self.tank.stop_moving()
+            #self.tank.stop_moving()
             self.tank.body.position = self.next_coord
             try:
                 self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
@@ -100,27 +100,23 @@ class Ai:
             Edges are calculated as we go, using an external function.
         """
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    
         queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
         visited = set()
     
         while queue:
-            (current, path) = queue.popleft()
-            x, y = current
-            if current == end:
+            (node, path) = queue.popleft()
+            x, y = node
+            if node == end:
                 return path
     
-            if current in visited:
+            if node in visited:
                 continue
     
-            visited.add(current)
+            visited.add(node)
     
-            for dx, dy in directions:
-                new_x, new_y = x + dx, y + dy
-    
-                if is_valid(new_x, new_y, grid):
-                    new_pos = Vec2d(new_x, new_y)
-                    queue.append((new_pos, path + deque([new_pos])))
+            for neighbour in self.get_tile_neighbors(node):
+                new_pos = Vec2d(neighbour.x, neighbour.y)
+                queue.append((new_pos, path + deque([new_pos])))
         return deque()  # No valid path found
 
     def get_target_tile(self):
@@ -169,11 +165,4 @@ class Ai:
         if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and self.currentmap.boxAt(coord.x, coord.y) == 0:
             return True
         return False
-    
-    
-    
-def is_valid(x, y, grid):
-    return 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] == 0
-
-
 
