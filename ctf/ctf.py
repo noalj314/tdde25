@@ -6,6 +6,8 @@ from pygame.color import *
 import pymunk
 import sys
 
+
+
 # ----- Initialisation ----- #
 
 # -- Initialise the physics
@@ -38,34 +40,42 @@ screen = pygame.display.set_mode((800, 600))
     #   Define the current level
 def welcome_screen():
     not_playing = True
+    current_map = None
     while not_playing:
         screen.fill(pygame.Color("black"))
         text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(400,300))
-        map0 = map_options(screen, 'map0', (100, 50))
-        map_options(screen, 'map1', (100, 100))
-        map_options(screen, 'map2', (100, 150))
-        map_options(screen, 'map3', (100, 200))
-      #  for event in pygame.event.get():
-           # mouse_pos = event.pos
-           # if event.type == pygame.MOUSEBUTTONDOWN:
+        map_y = 100
+        i = 0
+        
+        for ma in maps.maps_list_no_str:
+            map_options(screen, maps.maps_list[i], (50, map_y))
+            map_y += 50
+            i += 1
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = event.pos
+                for i, ma in enumerate(maps.maps_list_no_str):
+                    map_rect = ma.rect()
+                    if map_rect.collidepoint(mouse_pos):
+                        return ma 
 
-
+                    
+                    
         pygame.display.flip()
-
-
+    return None
+        
 
 def text_creator(screen, size, text, colour, pos):
     font = pygame.font.Font(None, size)
     text_create = font.render(text, True, colour)
     screen.blit(text_create, pos)
 
-def map_options(screen, map, pos):
-    text_creator(screen, 20, map, pygame.Color('white'), pos)
-welcome_screen()
-
+def map_options(screen, ma, pos):
+    text_creator(screen, 20, ma, pygame.Color('white'), pos)
+current_map = welcome_screen()
 
 multiplayer = True if '--hot-multiplayer' in sys.argv else False
-current_map = maps.map0
+#current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
     # -- List of all game objects
@@ -106,8 +116,6 @@ def hit(item):
         hit_points[item] += 1
     return hit_points
 
-#def hit():
-
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
     remove_shape(space,arb.shapes[0])
@@ -118,8 +126,10 @@ def collision_bullet_wood(arb, space, data):
     except ValueError:
         print("Unable to remove bullet from bullet_list when hit wood")
     hit(arb.shapes[1].parent)
+    remove_shape(space, arb.shapes[1])
     if hit_points[arb.shapes[1].parent] == 2:
         remove_shape(space, arb.shapes[1])
+        hit_points[arb.shapes[1].parent] = 0
         try:
             remove_from_list(game_objects_list,arb.shapes[1].parent)
         except ValueError:
