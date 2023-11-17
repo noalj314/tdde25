@@ -17,7 +17,7 @@ space.damping = 0.1  # Adds friction to the ground for all objects
 
 # -- Initialise the display
 pygame.init()
-pygame.display.set_mode()
+screen = pygame.display.set_mode((800,600))
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
@@ -35,7 +35,7 @@ import sounds
 
     # -- Constants
 FRAMERATE = 50
-screen = pygame.display.set_mode((800, 600))
+
     # -- Variables
     #   Define the current level
 def welcome_screen():
@@ -43,24 +43,36 @@ def welcome_screen():
     current_map = None
     while not_playing:
         screen.fill(pygame.Color("black"))
-        text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(400,300))
-        map_y = 100
+        singleplayer_rect = pygame.Rect(350, 200, 230,50)
+        multiplayer_rect = pygame.Rect(350, 300, 230,50)
+        pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect)
+        pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect)
+
+        text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(375,50))
+        text_creator(screen, 50,"Singleplayer", pygame.Color("white"),(375,200))
+        text_creator(screen, 50,"Multiplayer", pygame.Color("white"),(375,300))
+        map_y = 25
         i = 0
         
         for ma in maps.maps_list_no_str:
-            #map_options(screen, maps.maps_list[i], (50, map_y))
+            map_options(screen, maps.maps_list[i], (200, map_y+ 40))
             thumbnail = ma.gen_thumbnail()
             screen.blit(thumbnail, (50, map_y))
-            map_y += 50 
+            map_y += 150 
             i += 1
         for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                running = False
+                not_playing = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
-                for i, ma in enumerate(maps.maps_list_no_str):
-                    map_rect = ma.rect()
-                    #pygame.draw.rect(map_rect)
+                map_y = 50
+                for ma in (maps.maps_list_no_str):
+                    map_rect = pygame.Rect(50, map_y, 100,100)
                     if map_rect.collidepoint(mouse_pos):
                         return ma 
+                    map_y += 150
+                
 
                     
                     
@@ -74,7 +86,8 @@ def text_creator(screen, size, text, colour, pos):
     screen.blit(text_create, pos)
 
 def map_options(screen, ma, pos):
-    text_creator(screen, 20, ma, pygame.Color('white'), pos)
+
+    text_creator(screen, 40, ma, pygame.Color('white'), pos)
 current_map = welcome_screen()
 
 multiplayer = True if '--hot-multiplayer' in sys.argv else False
@@ -122,14 +135,12 @@ def hit(item):
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
     remove_shape(space,arb.shapes[0])
-
     sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list,arb.shapes[0].parent)
     except ValueError:
         print("Unable to remove bullet from bullet_list when hit wood")
     hit(arb.shapes[1].parent)
-    remove_shape(space, arb.shapes[1])
     if hit_points[arb.shapes[1].parent] == 2:
         remove_shape(space, arb.shapes[1])
         hit_points[arb.shapes[1].parent] = 0

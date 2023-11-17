@@ -22,21 +22,20 @@ class Map:
         """ Return the type of the box at coordinates (x, y). """
         return self.boxes[y][x]
 
-    def gen_thumbnail(self, thumb_size=(50,50)):
-        thumb = pygameSurface(thumb_size)
+    def gen_thumbnail(self, thumb_size=(100,100)):
+        thumb = pygame.Surface(thumb_size)
         box_width = thumb_size[0] / self.width
         box_height = thumb_size[1] / self.height
         
         for y in range(self.height):
             for x in range(self.width):
                 boxtype = self.boxAt(x ,y)
-                color = self.color_box
-                print(color)
+                color = self.color_box(boxtype)
                 pygame.draw.rect(thumb, color, (x * box_width, y * box_height, box_width, box_height))
-        
+
         return thumb
 
-    def color_box(boxtype):
+    def color_box(self, boxtype):
         if boxtype == 0:
             return pygame.Color("green")
         elif boxtype == 1:
