@@ -35,22 +35,28 @@ import sounds
 
     # -- Constants
 FRAMERATE = 50
+multiplayer = None
+ 
 
     # -- Variables
     #   Define the current level
 def welcome_screen():
+    global multiplayer
     not_playing = True
     current_map = None
     while not_playing:
         screen.fill(pygame.Color("black"))
-        singleplayer_rect = pygame.Rect(350, 200, 230,50)
-        multiplayer_rect = pygame.Rect(350, 300, 230,50)
-        pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect)
-        pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect)
+        
+        singleplayer_rect = pygame.Rect(350, 200, 250,50)
+        multiplayer_rect = pygame.Rect(350, 300, 250,50)
+        
+        pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect, border_radius=10)
+        pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect, border_radius=10)
 
         text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(375,50))
         text_creator(screen, 50,"Singleplayer", pygame.Color("white"),(375,200))
         text_creator(screen, 50,"Multiplayer", pygame.Color("white"),(375,300))
+        
         map_y = 25
         i = 0
         
@@ -67,14 +73,19 @@ def welcome_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
                 map_y = 50
+                if multiplayer_rect.collidepoint(mouse_pos):
+                    multiplayer = True
+                if singleplayer_rect.collidepoint(mouse_pos):
+                    multiplayer = False
                 for ma in (maps.maps_list_no_str):
                     map_rect = pygame.Rect(50, map_y, 100,100)
                     if map_rect.collidepoint(mouse_pos):
                         return ma 
                     map_y += 150
-                
-
-                    
+        if multiplayer:
+            text_creator(screen, 50, "Multiplayer Activated", pygame.Color("red"), (350, 350))
+        if not multiplayer:
+            text_creator(screen, 50, "Singleplayer Activated", pygame.Color("blue"), (350, 250))
                     
         pygame.display.flip()
     return None
@@ -86,11 +97,11 @@ def text_creator(screen, size, text, colour, pos):
     screen.blit(text_create, pos)
 
 def map_options(screen, ma, pos):
-
     text_creator(screen, 40, ma, pygame.Color('white'), pos)
+
 current_map = welcome_screen()
 
-multiplayer = True if '--hot-multiplayer' in sys.argv else False
+print(str(multiplayer))
 #current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
@@ -115,6 +126,7 @@ def reset_tank(tank):
     """Reset the tanks position to its starting position."""
     tank.body.angle = tank.start_orientation
     tank.body.position = tank.start_position.x, tank.start_position.y
+    tank.respawn = 0
 
 
 def drop_flag(tank,flag):
