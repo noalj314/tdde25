@@ -48,14 +48,17 @@ def welcome_screen():
         i = 0
         
         for ma in maps.maps_list_no_str:
-            map_options(screen, maps.maps_list[i], (50, map_y))
-            map_y += 50
+            #map_options(screen, maps.maps_list[i], (50, map_y))
+            thumbnail = ma.gen_thumbnail()
+            screen.blit(thumbnail, (50, map_y))
+            map_y += 50 
             i += 1
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
                 for i, ma in enumerate(maps.maps_list_no_str):
                     map_rect = ma.rect()
+                    #pygame.draw.rect(map_rect)
                     if map_rect.collidepoint(mouse_pos):
                         return ma 
 

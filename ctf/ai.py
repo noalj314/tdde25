@@ -93,6 +93,8 @@ class Ai:
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot.
         """
+        self.space.segment_query_first(self.tank.body.angle + 0,5, )
+
         pass  # To be implemented
 
     def find_shortest_path(self, grid, start, end):
