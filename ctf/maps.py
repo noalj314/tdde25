@@ -22,7 +22,28 @@ class Map:
         """ Return the type of the box at coordinates (x, y). """
         return self.boxes[y][x]
 
+    def gen_thumbnail(self, thumb_size=(100,100)):
+        thumb = pygame.Surface(thumb_size)
+        box_width = thumb_size[0] / self.width
+        box_height = thumb_size[1] / self.height
+        
+        for y in range(self.height):
+            for x in range(self.width):
+                boxtype = self.boxAt(x ,y)
+                color = self.color_box(boxtype)
+                pygame.draw.rect(thumb, color, (x * box_width, y * box_height, box_width, box_height))
 
+        return thumb
+
+    def color_box(self, boxtype):
+        if boxtype == 0:
+            return pygame.Color("green")
+        elif boxtype == 1:
+            return pygame.Color("grey")
+        elif boxtype == 2:
+            return pygame.Color("brown")
+        elif boxtype == 3:
+            return pygame.Color("white")
 map0 = Map(9, 9,
            [[0, 1, 0, 0, 0, 0, 0, 1, 0],
             [0, 1, 0, 2, 0, 2, 0, 1, 0],
@@ -70,3 +91,6 @@ map3 = Map(15, 11,
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
            [[0.5, 0.5, 0], [14.5, 0.5, 0], [0.5, 10.5, 180], [14.5, 10.5, 180], [7.5, 0.5, 0], [7.5, 10.5, 180]], [7.5, 5.5])
+
+maps_list = ['map0', 'map1', 'map2', 'map3']
+maps_list_no_str = [map0,map1,map2,map3]

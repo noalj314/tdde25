@@ -6,6 +6,8 @@ from pygame.color import *
 import pymunk
 import sys
 
+
+
 # ----- Initialisation ----- #
 
 # -- Initialise the physics
@@ -15,7 +17,7 @@ space.damping = 0.1  # Adds friction to the ground for all objects
 
 # -- Initialise the display
 pygame.init()
-pygame.display.set_mode()
+screen = pygame.display.set_mode((800,600))
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
@@ -36,8 +38,60 @@ FRAMERATE = 50
 
     # -- Variables
     #   Define the current level
+def welcome_screen():
+    not_playing = True
+    current_map = None
+    while not_playing:
+        screen.fill(pygame.Color("black"))
+        singleplayer_rect = pygame.Rect(350, 200, 230,50)
+        multiplayer_rect = pygame.Rect(350, 300, 230,50)
+        pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect)
+        pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect)
+
+        text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(375,50))
+        text_creator(screen, 50,"Singleplayer", pygame.Color("white"),(375,200))
+        text_creator(screen, 50,"Multiplayer", pygame.Color("white"),(375,300))
+        map_y = 25
+        i = 0
+        
+        for ma in maps.maps_list_no_str:
+            map_options(screen, maps.maps_list[i], (200, map_y+ 40))
+            thumbnail = ma.gen_thumbnail()
+            screen.blit(thumbnail, (50, map_y))
+            map_y += 150 
+            i += 1
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                running = False
+                not_playing = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = event.pos
+                map_y = 50
+                for ma in (maps.maps_list_no_str):
+                    map_rect = pygame.Rect(50, map_y, 100,100)
+                    if map_rect.collidepoint(mouse_pos):
+                        return ma 
+                    map_y += 150
+                
+
+                    
+                    
+        pygame.display.flip()
+    return None
+        
+
+def text_creator(screen, size, text, colour, pos):
+    font = pygame.font.Font(None, size)
+    text_create = font.render(text, True, colour)
+    screen.blit(text_create, pos)
+
+def map_options(screen, ma, pos):
+
+    text_creator(screen, 40, ma, pygame.Color('white'), pos)
+current_map = welcome_screen()
+
 multiplayer = True if '--hot-multiplayer' in sys.argv else False
-current_map = maps.map0
+#current_map = maps.map0
 screen = pygame.display.set_mode(current_map.rect().size)
 
     # -- List of all game objects
@@ -45,6 +99,7 @@ game_objects_list = []
 tanks_list = []
 bullet_list = []
 ai_list = []
+hit_points = {}
 
 
 def remove_shape(space, shape, shape2=None):
@@ -58,22 +113,44 @@ def remove_from_list(lst, obj):
 
 def reset_tank(tank):
     """Reset the tanks position to its starting position."""
-    tank.body.position = tank.start_position.x, tank.start_position.y
     tank.body.angle = tank.start_orientation
+    tank.body.position = tank.start_position.x, tank.start_position.y
+
+
+def drop_flag(tank,flag):
+    """Drops the flag at the tanks current posistion"""
+    gameobjects.Flag(tank.body.position.x, tank.body.position.y)
+    tank.flag = None
+    flag.is_on_tank = False
+    return flag
+
+def hit(item):
+    """Update the dictionary hit_points if a tank or wood wall is hit"""
+    if item not in hit_points:
+        hit_points[item] = 1
+    else:
+        hit_points[item] += 1
+    return hit_points
 
 def collision_bullet_wood(arb, space, data):
     """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
-    remove_shape(space,arb.shapes[0], arb.shapes[1])
+    remove_shape(space,arb.shapes[0])
     sounds.explosion_sound.play()
     try:
         remove_from_list(bullet_list,arb.shapes[0].parent)
     except ValueError:
         print("Unable to remove bullet from bullet_list when hit wood")
-    try:
-        remove_from_list(game_objects_list,arb.shapes[1].parent)
-    except ValueError:
-        print("Unable to remove box from game_objects_list")
-    return True
+    hit(arb.shapes[1].parent)
+    if hit_points[arb.shapes[1].parent] == 2:
+        remove_shape(space, arb.shapes[1])
+        hit_points[arb.shapes[1].parent] = 0
+        try:
+            remove_from_list(game_objects_list,arb.shapes[1].parent)
+        except ValueError:
+            print("Unable to remove box from game_objects_list")
+        return True
+    else:
+        return False
 
 def collision_bullet_wall(arb, space, data):
     """Triggered when bullet and wall collide, removing the bullet from the space and bullet_list."""
@@ -87,13 +164,34 @@ def collision_bullet_wall(arb, space, data):
 
 def collision_bullet_tank(arb, space, data):
     """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
-    remove_shape(space,arb.shapes[0])
+    tank = arb.shapes[1].parent
+    remove_shape(space, arb.shapes[0])
     sounds.explosion_sound.play()
+
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
         print("Unable to remove bullet from bullet_list when hit wall")
-    reset_tank(arb.shapes[1].parent)
+    if gameobjects.Tank.ability_to_die(tank):
+        hit(tank)
+    if hit_points[tank] == 2:
+        if tank.flag:
+            drop_flag(tank, flag)
+        reset_tank(tank)
+        hit_points[tank] = 0
+        return True
+    else:
+        return False
+
+def collision_bullet_bullet(arb, space, data):
+    """Triggered when bullet and another bullet collide, removing the bullets from the space and bullet_list."""
+    remove_shape(space, arb.shapes[0],arb.shapes[1])
+    sounds.explosion_sound.play()
+    try:
+        remove_from_list(bullet_list, arb.shapes[0].parent)
+        remove_from_list(bullet_list, arb.shapes[1].parent)
+    except ValueError:
+        print("Unable to remove bullet from bullet_list when hit other bullet")
     return True
 
 def collision_handler(space, object1, object2, collision_function):
@@ -105,8 +203,9 @@ def collision_handler(space, object1, object2, collision_function):
 b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
 b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
 b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
-b_m_handler = collision_handler(space, 4, 0, collision_bullet_wall)
+b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall)
 b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
+b_b_handler = collision_handler(space, 4, 4, collision_bullet_bullet)
 
 
 # Adds walls to prevent from going outside the screen
@@ -183,7 +282,6 @@ def create_flag():
 
 flag = create_flag()
 barrier(current_map,space)
-background = create_background(screen, current_map, images)
 create_boxes()
 create_tanks()
 # ----- Main Loop -----#
@@ -273,39 +371,33 @@ while running:
             sounds.win_sound.play() # play win sound
             game_objects_list.remove(tank.flag)
             flag = create_flag()
-            
-            tank.body.position = tank.start_position.x, tank.start_position.y
-            tank.body.angle = tank.start_orientation
             tank.flag = None
             tank.score += 1
+            for item in tanks_list:
+                reset_tank(item)
             for i in range(len(tanks_list)):
                 print(f"Player {i+1}: {tanks_list[i].score}")
             for i in range(0, len(current_map.start_positions)):
                 if not multiplayer and i > 0:
                     ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                elif multiplayer and i > 0:
+                elif multiplayer and i > 1:
                     ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+
+    foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
+    background = create_background(screen, current_map, images)
 
 
     # Update ai
     def bots():
         for ai in ai_list:
-            #ai = ai_list[2]
-            #ai.update_grid_pos()
-            ai.decide()
-            #try:
-                #ai.tank.body.position = ai.path[1].x + 0.5, ai.path[1].y + 0.5
-            #except IndexError:
-                #""
-                #print(ai, "says ???")
-            
-            #print(ai.tank.body.position, ai.path)
+            ai.decide(background)
 
     # -- Update Display
     bots()
 
     # <INSERT DISPLAY BACKGROUND>
     screen.blit(background, (0, 0))
+    screen.blit(foreground, (0, 0))
 
 
     # <INSERT DISPLAY OBJECTS>

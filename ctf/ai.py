@@ -4,7 +4,9 @@
 import math
 from collections import defaultdict, deque
 
+import images
 import pymunk
+import pygame
 from pymunk import Vec2d
 import gameobjects
 from numpy import transpose
@@ -12,7 +14,7 @@ from numpy import transpose
 # NOTE: use only 'map0' during development!
 
 MIN_ANGLE_DIF = math.radians(3)   # 3 degrees, a bit more than we can turn each tick
-
+MIN_XY_DIF = 0.05
 
 def angle_between_vectors(vec1, vec2):
     """ Since Vec2d operates in a cartesian coordinate space we have to
@@ -22,12 +24,10 @@ def angle_between_vectors(vec1, vec2):
     vec = vec.perpendicular()
     return vec.angle
 
-
 def periodic_difference_of_angles(angle1, angle2):
     """ Compute the difference between two angles.
     """
     return (angle1 % (2 * math.pi)) - (angle2 % (2 * math.pi))
-
 
 class Ai:
     """ A simple ai that finds the shortest path to the target using
@@ -54,32 +54,32 @@ class Ai:
         """ This should only be called in the beginning, or at the end of a move_cycle. """
         self.grid_pos = self.get_tile_of_position((self.tank.body.position.x, self.tank.body.position.y))
         
-    def decide(self):
-        self.maybe_shoot()
+    def decide(self,background):
+        self.maybe_shoot(background)
         if self.prev_flag_pos != self.get_target_tile():
             self.update_grid_pos()
             self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
-            self.path.popleft()
             try:
+                self.path.popleft()
                 self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
             except IndexError:
-                ""
+                pass
             self.prev_flag_pos = self.get_target_tile()
-        if self.next_coord.x + 0.05 < self.tank.body.position[0]:
+        if self.next_coord.x + MIN_XY_DIF < self.tank.body.position[0]:
             self.choose_direction(math.pi/2)
-        elif self.next_coord.x - 0.05 > self.tank.body.position[0]:
+        elif self.next_coord.x - MIN_XY_DIF > self.tank.body.position[0]:
             self.choose_direction(3*math.pi/2)
-        elif self.next_coord.y + 0.05 < self.tank.body.position[1]:
+        elif self.next_coord.y + MIN_XY_DIF < self.tank.body.position[1]:
             self.choose_direction(math.pi)
-        elif self.next_coord.y - 0.05 > self.tank.body.position[1]:
+        elif self.next_coord.y - MIN_XY_DIF > self.tank.body.position[1]:
             self.choose_direction(0)
         else:
-            self.tank.stop_moving()
+            #self.tank.stop_moving()
             self.tank.body.position = self.next_coord
             try:
                 self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
             except IndexError:
-                ""
+                pass
             
     def choose_direction(self, angle):
         if ((self.tank.body.angle) % (2 * math.pi) < (angle) % (2 * math.pi) - MIN_ANGLE_DIF and not (angle == 3*math.pi/2 and self.tank.body.angle == 0)) or (self.tank.body.angle) % (2 * math.pi) > (angle) % (2 * math.pi) - MIN_ANGLE_DIF + math.pi:
@@ -93,23 +93,25 @@ class Ai:
             self.tank.body.angle = angle
             self.tank.accelerate()
 
-    def maybe_shoot(self):
+    def maybe_shoot(self, background):
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot.
         """
         angle = self.tank.body.angle + math.pi/2
 
-        x_start = self.tank.body.position.x + (0.4 * math.cos(angle-90))
-        y_start = self.tank.body.position.y + (0.4 * math.sin(angle+90))
+        x_start = self.tank.body.position.x + (0.4 * math.cos(angle))
+        y_start = self.tank.body.position.y + (0.4 * math.sin(angle))
 
-        x_end = self.tank.body.position.x + (max(self.max_x,self.max_y) * math.cos(math.radians(angle-90)))
-        y_end = self.tank.body.position.y + (max(self.max_x,self.max_y) * math.sin(math.radians(angle+90)))
+        x_end = self.tank.body.position.x + (max(self.max_x,self.max_y) * math.cos(angle))
+        y_end = self.tank.body.position.y + (max(self.max_x,self.max_y) * math.sin(angle))
+
+        pygame.draw.line(background,0xff0000,(x_start*images.TILE_SIZE,y_start*images.TILE_SIZE), (x_end*images.TILE_SIZE,y_end*images.TILE_SIZE))
 
         res = self.space.segment_query_first((x_start,y_start), (x_end,y_end), 0.3, pymunk.ShapeFilter())
         
         try:
             if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape,'parent'):            
-                if isinstance(res.shape.parent,gameobjects.Tank) or isinstance(res.shape.parent,gameobjects.Box):
+                if isinstance(res.shape.parent,gameobjects.Tank) or (isinstance(res.shape.parent,gameobjects.Box) and res.shape.parent.sprite == images.woodbox):
                     self.tank.shoot(self.space,self.bullet_list)
         except AttributeError:
             print("Fel")
@@ -119,28 +121,23 @@ class Ai:
         """ A simple Breadth First Search using integer coordinates as our nodes.
             Edges are calculated as we go, using an external function.
         """
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    
         queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
         visited = set()
     
         while queue:
-            (current, path) = queue.popleft()
-            x, y = current
-            if current == end:
+            (node, path) = queue.popleft()
+            x, y = node
+            if node == end:
                 return path
     
-            if current in visited:
+            if node in visited:
                 continue
     
-            visited.add(current)
+            visited.add(node)
     
-            for dx, dy in directions:
-                new_x, new_y = x + dx, y + dy
-    
-                if is_valid(new_x, new_y, grid):
-                    new_pos = Vec2d(new_x, new_y)
-                    queue.append((new_pos, path + deque([new_pos])))
+            for neighbour in self.get_tile_neighbors(node):
+                new_pos = Vec2d(neighbour.x, neighbour.y)
+                queue.append((new_pos, path + deque([new_pos])))
         return deque()  # No valid path found
 
     def get_target_tile(self):
@@ -189,11 +186,4 @@ class Ai:
         if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and self.currentmap.boxAt(coord.x, coord.y) == 0:
             return True
         return False
-    
-    
-    
-def is_valid(x, y, grid):
-    return 0 <= x < len(grid) and 0 <= y < len(grid[0]) and grid[x][y] == 0
-
-
 

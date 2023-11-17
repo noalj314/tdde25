@@ -145,7 +145,7 @@ class Tank(GamePhysicsObject):
             self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
             self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
             self.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
-
+            self.respawn = 0 # respawn protection
             self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
             self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
             self.start_position = pymunk.Vec2d(x,
@@ -199,6 +199,10 @@ class Tank(GamePhysicsObject):
             """ Call this function to check whether a tank can shoot or not """
             return self.shoot_last >= 50
 
+        def ability_to_die(self):
+            """ Call this function to check whether a tank can die or not """
+            return self.respawn >= 100 # two seconds
+
         def update(self):
             """ A function to update the objects coordinates. Gets called at every tick of the game. """
 
@@ -214,6 +218,7 @@ class Tank(GamePhysicsObject):
             # Updates the rotation
             self.body.angular_velocity += self.rotation * self.ACCELERATION
             self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
+            self.respawn += 1
 
         def post_update(self):
             # If the tank carries the flag, then update the positon of the flag
@@ -225,6 +230,7 @@ class Tank(GamePhysicsObject):
             else:
                 self.max_speed = Tank.NORMAL_MAX_SPEED
             self.shoot_last += 1
+
         def try_grab_flag(self, flag):
             """ Call this function to try to grab the flag, if the flag is not on other tank
                 and it is close to the current tank, then the current tank will grab the flag.
