@@ -179,7 +179,6 @@ def collision_bullet_tank(arb, space, data):
     tank = arb.shapes[1].parent
     remove_shape(space, arb.shapes[0])
     sounds.explosion_sound.play()
-
     try:
         remove_from_list(bullet_list, arb.shapes[0].parent)
     except ValueError:
@@ -374,6 +373,28 @@ while running:
             flag = create_flag()
             tank.flag = None
             tank.score += 1
+            title_score = True
+            while title_score:
+                screen.fill(pygame.Color("black"))
+                current_map = None
+                singleplayer_rect = pygame.Rect(350, 200, 250,50)
+                multiplayer_rect = pygame.Rect(350, 300, 250,50)
+                
+                pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect, border_radius=10)
+                pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect, border_radius=10)
+
+                text_creator(screen, 50,"Capture the Flag", pygame.Color("white"),(375,50))
+                text_creator(screen, 50,"Singleplayer", pygame.Color("white"),(375,200))
+                text_creator(screen, 50,"Multiplayer", pygame.Color("white"),(375,300))
+                
+
+                
+                
+                for event in pygame.event.get():
+                    if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                        title_score = False
+                        running = False
+
             for item in tanks_list:
                 reset_tank(item)
             for i in range(len(tanks_list)):
@@ -383,7 +404,6 @@ while running:
                     ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
                 elif multiplayer and i > 1:
                     ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, space, current_map)
-
 
     # Update ai
     def bots():
