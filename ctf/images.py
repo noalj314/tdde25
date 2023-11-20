@@ -42,3 +42,5 @@ tanks = [load_image('tank_orange.png'), load_image('tank_blue.png'), load_image(
 # List of image of bases corresponding to the color of each tank
 bases = [load_image('base_orange.png'), load_image('base_blue.png'), load_image('base_white.png'),
          load_image('base_yellow.png'), load_image('base_red.png'), load_image('base_gray.png')]
+
+menu = load_image('menubackground.png')  # Image of the menu
