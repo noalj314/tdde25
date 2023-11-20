@@ -5,27 +5,17 @@ from pygame.locals import *
 from pygame.color import *
 import pymunk
 import sys
-
-
-
-# ----- Initialisation ----- #
-
-# -- Initialise the physics
 space = pymunk.Space()
 space.gravity = (0.0, 0.0)
 space.damping = 0.1  # Adds friction to the ground for all objects
 
-# -- Initialise the display
+    # -- Initialise the display
 pygame.init()
 screen = pygame.display.set_mode((800,600))
 
-# -- Initialise the clock
+    # -- Initialise the clock
 clock = pygame.time.Clock()
 
-
-
-# -- Import from the ctf framework
-# The framework needs to be imported after initialisation of pygame
 
 import ai
 import images
@@ -34,10 +24,23 @@ import maps
 import sounds
 import menu
 
-    # -- Constants
-FRAMERATE = 50
-multiplayer = None
- 
+
+# ----- Initialisation ----- #
+def main_game():
+    global multiplayer, current_map, screen
+
+    # -- Initialise the physics
+    space = pymunk.Space()
+    space.gravity = (0.0, 0.0)
+    space.damping = 0.1 
+
+
+    # -- Import from the ctf framework
+    # The framework needs to be imported after initialisation of pygame
+        # -- Constants
+    FRAMERATE = 50
+    multiplayer = None
+    
 
     # -- Variables
     #   Define the current level
@@ -46,8 +49,6 @@ multiplayer = None
 
 
 
-def main_game():
-    global multiplayer, current_map, screen
         # -- List of all game objects
     current_map = menu.current_map
     multiplayer = menu.multiplayer
@@ -91,7 +92,7 @@ def main_game():
 
     def collision_bullet_wood(arb, space, data):
         """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
-        remove_shape(space,arb.shapes[0])
+        remove_shape(space, arb.shapes[0])
         sounds.explosion_sound.play()
         try:
             remove_from_list(bullet_list,arb.shapes[0].parent)
@@ -354,7 +355,16 @@ def main_game():
                     for i in range(len(tanks_list)):
                         menu.text_creator(screen, 50, f"Player {i+1}: {tanks_list[i].score}", pygame.Color("white"),(100,100+y))
                         y += 100
-                        
+                    for item in tanks_list:
+                        reset_tank(item)
+                    for i in range(len(tanks_list)):
+                        print(f"Player {i+1}: {tanks_list[i].score}")
+                    for i in range(0, len(current_map.start_positions)):
+                        if not multiplayer and i > 0:
+                            ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+                        elif multiplayer and i > 1:
+                            ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+    
                     
                     
                     for event in pygame.event.get():
@@ -381,16 +391,7 @@ def main_game():
                                 
                     pygame.display.flip()
     
-                for item in tanks_list:
-                    reset_tank(item)
-                for i in range(len(tanks_list)):
-                    print(f"Player {i+1}: {tanks_list[i].score}")
-                for i in range(0, len(current_map.start_positions)):
-                    if not multiplayer and i > 0:
-                        ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                    elif multiplayer and i > 1:
-                        ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-    
+                
         foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
         background = create_background(screen, current_map, images)
     
