@@ -126,7 +126,6 @@ class Ai:
     
         while queue:
             (node, path) = queue.popleft()
-            x, y = node
             if node == end:
                 return path
     
