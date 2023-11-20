@@ -42,6 +42,7 @@ class Ai:
         self.max_x = currentmap.width - 1
         self.max_y = currentmap.height - 1
 
+        self.move_cycle = self.move_cycle_gen()
         self.path = deque()
         self.update_grid_pos()
         self.next_coord = self.tank.body.position
@@ -51,44 +52,49 @@ class Ai:
         """ This should only be called in the beginning, or at the end of a move_cycle. """
         self.grid_pos = self.get_tile_of_position((self.tank.body.position.x, self.tank.body.position.y))
         
-    def decide(self):
-        if self.prev_flag_pos != self.get_target_tile():
+    def move_cycle_gen(self):
+        while True:
+            every2 = 0 # To counteract delay in movement
             self.update_grid_pos()
             self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
-            try:
-                self.path.popleft()
-                self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
-            except IndexError:
-                pass
-            self.prev_flag_pos = self.get_target_tile()
-        if self.next_coord.x + MIN_XY_DIF < self.tank.body.position[0]:
-            self.choose_direction(math.pi/2)
-        elif self.next_coord.x - MIN_XY_DIF > self.tank.body.position[0]:
-            self.choose_direction(3*math.pi/2)
-        elif self.next_coord.y + MIN_XY_DIF < self.tank.body.position[1]:
-            self.choose_direction(math.pi)
-        elif self.next_coord.y - MIN_XY_DIF > self.tank.body.position[1]:
-            self.choose_direction(0)
-        else:
-            #self.tank.stop_moving()
-            self.tank.body.position = self.next_coord
-            try:
-                self.next_coord = self.path.popleft() + Vec2d(0.5, 0.5)
-            except IndexError:
-                pass
-            
-    def choose_direction(self, angle):
-        if ((self.tank.body.angle) % (2 * math.pi) < (angle) % (2 * math.pi) - MIN_ANGLE_DIF and not (angle == 3*math.pi/2 and self.tank.body.angle == 0)) or (self.tank.body.angle) % (2 * math.pi) > (angle) % (2 * math.pi) - MIN_ANGLE_DIF + math.pi:
-            self.tank.stop_moving()
-            self.tank.turn_right()
-        elif (self.tank.body.angle) % (2 * math.pi) > (angle) % (2 * math.pi) + MIN_ANGLE_DIF or (self.tank.body.angle) % (2 * math.pi) < (angle) % (2 * math.pi) + MIN_ANGLE_DIF - math.pi:
-            self.tank.stop_moving()
-            self.tank.turn_left()
-        else:
-            self.tank.stop_turning()
-            self.tank.body.angle = angle
-            self.tank.accelerate()
+            if not self.path:
+                yield
+                continue # Start from the top of our cycle
+            next_coord = self.path.popleft()
+            last_distance = 10 # High value
+            yield
+            target_angle = angle_between_vectors(self.tank.body.position, next_coord + Vec2d(0.5, 0.5))
+            dif_angle = periodic_difference_of_angles(self.tank.body.angle, target_angle)
 
+            if dif_angle < -math.pi or 0 < dif_angle < math.pi:
+                self.tank.turn_left()
+                yield
+            else:
+                self.tank.turn_right()
+                yield
+
+            while abs(dif_angle) >= MIN_ANGLE_DIF:
+                dif_angle = periodic_difference_of_angles(self.tank.body.angle, target_angle)
+                yield
+
+            self.tank.stop_turning()
+            self.tank.accelerate()
+            distance = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
+            while distance > 0.25 and last_distance >= distance:
+                if every2 == 0:
+                    last_distance = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
+                    every2 = 1
+                else:
+                    every2 -= 1
+                distance = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
+                yield
+            self.tank.stop_moving()
+            yield
+
+
+    def decide(self):
+        next(self.move_cycle)
+        
     def maybe_shoot(self):
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot.
@@ -101,7 +107,6 @@ class Ai:
         """ A simple Breadth First Search using integer coordinates as our nodes.
             Edges are calculated as we go, using an external function.
         """
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         queue = deque([(start, deque([start]))])  # Each element: (current_position, path)
         visited = set()
     
@@ -109,6 +114,7 @@ class Ai:
             (node, path) = queue.popleft()
             x, y = node
             if node == end:
+                path.popleft()
                 return path
     
             if node in visited:
