@@ -159,7 +159,7 @@ class Tank(GamePhysicsObject):
             sounds.movement_sound.play()
             sounds.engine_sound.set_volume(0.2)
             sounds.engine_sound.play()
-            self.acceleration = 1
+            self.acceleration = 2
 
         def stop_moving(self):
             """ Call this function to make the tank stop moving. """
@@ -180,15 +180,15 @@ class Tank(GamePhysicsObject):
             sounds.engine_sound.set_volume(0.2)
             sounds.engine_sound.play()
 
-            self.acceleration = -1
+            self.acceleration = -2
 
         def turn_left(self):
             """ Makes the tank turn left (counter clock-wise). """
-            self.rotation = -1
+            self.rotation = -2
 
         def turn_right(self):
             """ Makes the tank turn right (clock-wise). """
-            self.rotation = 1
+            self.rotation = 2
 
         def stop_turning(self):
             """ Call this function to make the tank stop turning. """
@@ -250,14 +250,14 @@ class Tank(GamePhysicsObject):
             """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
             return self.flag is not None and (self.start_position - self.body.position).length < 0.2
 
-        def shoot(self, space):
+        def shoot(self, space, bullet_list):
             """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
                 sounds.tankshot_sound.play()
                 bullet = Bullet(self, images.bullet, space)
                 bullet.shape.collision_type = collision_types["bullet"]
-                return bullet
+                bullet_list.append(bullet)
             else:
                 return None
 

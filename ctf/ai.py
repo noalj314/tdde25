@@ -4,7 +4,9 @@
 import math
 from collections import defaultdict, deque
 
+import images
 import pymunk
+import pygame
 from pymunk import Vec2d
 import gameobjects
 from numpy import transpose
@@ -32,10 +34,11 @@ class Ai:
     a breadth first search. Also capable of shooting other tanks and or wooden
     boxes. """
 
-    def __init__(self, tank, game_objects_list, tanks_list, space, currentmap):
+    def __init__(self, tank, game_objects_list, tanks_list, bullet_list, space, currentmap):
         self.tank = tank
         self.game_objects_list = game_objects_list
         self.tanks_list = tanks_list
+        self.bullet_list = bullet_list
         self.space = space
         self.currentmap = currentmap
         self.flag = None
@@ -92,15 +95,32 @@ class Ai:
             yield
 
 
-    def decide(self):
+    def decide(self, background):
+        self.maybe_shoot(background)
         next(self.move_cycle)
-        
-    def maybe_shoot(self):
+    
+    def maybe_shoot(self, background):
         """ Makes a raycast query in front of the tank. If another tank
             or a wooden box is found, then we shoot.
         """
-        self.space.segment_query_first(self.tank.body.angle + 0,5, )
+        angle = self.tank.body.angle + math.pi/2
 
+        x_start = self.tank.body.position.x + (0.4 * math.cos(angle))
+        y_start = self.tank.body.position.y + (0.4 * math.sin(angle))
+
+        x_end = self.tank.body.position.x + (max(self.max_x,self.max_y) * math.cos(angle))
+        y_end = self.tank.body.position.y + (max(self.max_x,self.max_y) * math.sin(angle))
+
+        pygame.draw.line(background,0xff0000,(x_start*images.TILE_SIZE,y_start*images.TILE_SIZE), (x_end*images.TILE_SIZE,y_end*images.TILE_SIZE))
+
+        res = self.space.segment_query_first((x_start,y_start), (x_end,y_end), 0.3, pymunk.ShapeFilter())
+        
+        try:
+            if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape,'parent'):            
+                if isinstance(res.shape.parent,gameobjects.Tank) or (isinstance(res.shape.parent,gameobjects.Box) and res.shape.parent.sprite == images.woodbox):
+                    self.tank.shoot(self.space,self.bullet_list)
+        except AttributeError:
+            print("Fel")
         pass  # To be implemented
 
     def find_shortest_path(self, grid, start, end):
@@ -112,7 +132,6 @@ class Ai:
     
         while queue:
             (node, path) = queue.popleft()
-            x, y = node
             if node == end:
                 path.popleft()
                 return path
