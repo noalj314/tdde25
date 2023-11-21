@@ -34,19 +34,10 @@ import maps
 import sounds
 import menu
 
-    # -- Constants
-multiplayer = None
- 
-
-    # -- Variables
-    #   Define the current level
-
-
-
-
-
 def main_game():
     
+    # -- Constants
+    multiplayer = None
     # -- Initialise the physics
     space = pymunk.Space()
     space.gravity = (0.0, 0.0)
@@ -144,10 +135,10 @@ def main_game():
         handle = space.add_collision_handler(object1, object2)
         handle.pre_solve = collision_function
         return handle
-
+""
+        remove_shape(space, arb.shapes[0],arb.shapes[1]
     def collision_bullet_bullet(arb, space, data):
-        """Triggered when bullet and another bullet collide, removing the bullets from the space and bullet_list."""
-        remove_shape(space, arb.shapes[0],arb.shapes[1])
+        """Triggered when bullet and another bullet collide, removing the bullets from the space and bullet_list.")
         sounds.explosion_sound.play()
         try:
             remove_from_list(bullet_list, arb.shapes[0].parent)
