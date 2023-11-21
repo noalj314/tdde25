@@ -44,12 +44,14 @@ class Ai:
         self.flag = None
         self.max_x = currentmap.width - 1
         self.max_y = currentmap.height - 1
-
         self.move_cycle = self.move_cycle_gen()
-        self.path = deque()
-        self.update_grid_pos()
-        self.next_coord = self.tank.body.position
-        self.prev_flag_pos = None
+        
+        self.tank.speed_mod = 2
+        #self.tank.fire_rate = gameobjects.Tank.FIRE_RATE * 0.5
+        #self.tank.hp = int(gameobjects.Tank.HIT_POINTS * 1.5)
+        #self.tank.max_hp = int(gameobjects.Tank.HIT_POINTS * 1.5)
+        #self.tank.damage = int(gameobjects.Tank.WEAPON_DAMAGE * 2)
+        self.tank.bullet_speed = gameobjects.Tank.BULLET_SPEED * 1.8
 
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
@@ -91,6 +93,7 @@ class Ai:
                     every2 -= 1
                 distance = self.tank.body.position.get_distance(next_coord + Vec2d(0.5, 0.5))
                 yield
+            #if periodic_difference_of_angles(self.tank.body.angle, angle_between_vectors(self.tank.body.position, self.path[0] + Vec2d(0.5, 0.5))) >= MIN_ANGLE_DIF:
             self.tank.stop_moving()
             yield
 
@@ -189,7 +192,7 @@ class Ai:
     def filter_tile_neighbors(self, coord):
         """ Used to filter the tile to check if it is a neighbor of the tank.
         """
-        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and self.currentmap.boxAt(coord.x, coord.y) == 0:
+        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and (self.currentmap.boxAt(coord.x, coord.y) == 0 or self.currentmap.boxAt(coord.x, coord.y) == 2):
             return True
         return False
 
