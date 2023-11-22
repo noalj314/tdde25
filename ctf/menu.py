@@ -54,7 +54,7 @@ def welcome_screen(ui_width):
         map_y_positions = [650, 760, 650, 760]
         map_x_positions = [85,85, 300, 300]
         for event in pygame.event.get():
-            if (event.type == KEYDOWN and event.key == K_ESCAPE):
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 running = False
                 not_playing = False
             if event.type == pygame.MOUSEBUTTONDOWN:

@@ -36,14 +36,6 @@ import menu
 
     # -- Constants
 multiplayer = None
- 
-
-    # -- Variables
-    #   Define the current level
-
-
-
-
 
 def main_game():
     
@@ -72,6 +64,9 @@ def main_game():
 
     def reset_tank(tank):
         """Reset the tanks position to its starting position."""
+        tank.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
+        tank.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+        tank.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
         tank.body.angle = tank.start_orientation
         tank.body.position = tank.start_position.x, tank.start_position.y
         tank.respawn = 0

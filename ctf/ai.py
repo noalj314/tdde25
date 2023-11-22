@@ -114,8 +114,8 @@ class Ai:
         """
         angle = self.tank.body.angle + math.pi/2
 
-        x_start = self.tank.body.position.x + (0.6 * math.cos(angle))
-        y_start = self.tank.body.position.y + (0.6 * math.sin(angle))
+        x_start = self.tank.body.position.x + (0.4 * math.cos(angle))
+        y_start = self.tank.body.position.y + (0.4 * math.sin(angle))
 
         x_end = self.tank.body.position.x + (max(self.max_x,self.max_y) * math.cos(angle))
         y_end = self.tank.body.position.y + (max(self.max_x,self.max_y) * math.sin(angle))
@@ -126,8 +126,7 @@ class Ai:
         
         try:
             if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape,'parent'):            
-                if isinstance(res.shape.parent,gameobjects.Tank) or (isinstance(res.shape.parent,gameobjects.Box) and res.shape.parent.sprite == images.woodbox):
-                    print(res.shape.parent.body.position)
+                if (isinstance(res.shape.parent,gameobjects.Tank) or (isinstance(res.shape.parent,gameobjects.Box) and res.shape.parent.sprite == images.woodbox)) and res.shape.parent != self.tank:
                     self.tank.shoot(self.space,self.bullet_list)
         except AttributeError:
             print("Fel")
