@@ -7,6 +7,7 @@ import sounds
 import images
 
 
+FRAMERATE = 50
 DEBUG = False  # Change this to set it in debug mode
 
 collision_types = {
@@ -41,7 +42,7 @@ class GameObject:
             other objects than itself."""
         return
 
-    def update_screen(self, screen):
+    def update_screen(self, screen, ui_width):
         """ Updates the visual part of the game. Should NOT need to be changed
             by a subclass."""
         sprite = self.sprite
@@ -56,7 +57,7 @@ class GameObject:
         # corner of the sprite
         offset = pymunk.Vec2d(*sprite.get_size()) / 2.
         p = p - offset
-        screen.blit(sprite, p)  # Copy the sprite on the screen
+        screen.blit(sprite, p+pymunk.Vec2d(ui_width, 0))  # Copy the sprite on the screen
 
 
 class GamePhysicsObject(GameObject):
@@ -115,8 +116,8 @@ class GamePhysicsObject(GameObject):
         """ Angles are reversed from the engine to the display. """
         return -math.degrees(self.body.angle)
 
-    def update_screen(self, screen):
-        super().update_screen(screen)
+    def update_screen(self, screen, ui_width):
+        super().update_screen(screen, ui_width)
         # debug draw
         if DEBUG:
             ps = [self.body.position + p for p in self.points]
@@ -138,6 +139,10 @@ class Tank(GamePhysicsObject):
         ACCELERATION = 0.4
         NORMAL_MAX_SPEED = 2.0
         FLAG_MAX_SPEED = NORMAL_MAX_SPEED * 0.5
+        FIRE_RATE = 2
+        HIT_POINTS = 4
+        WEAPON_DAMAGE = 1
+        BULLET_SPEED = 5
 
         def __init__(self, x, y, orientation, sprite, space):
             super().__init__(x, y, orientation, sprite, space, True)
@@ -148,18 +153,23 @@ class Tank(GamePhysicsObject):
             self.respawn = 0 # respawn protection
             self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
             self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
-            self.start_position = pymunk.Vec2d(x,
-                                               y)  # Define the start position, which is also the position where the tank has to return with the flag
-            #self.score = 0
+            self.start_position = pymunk.Vec2d(x,y)  # Define the start position, which is also the position where the tank has to return with the flag
+            self.score = 0
+            self.fire_rate = Tank.FIRE_RATE
+            self.hp = Tank.HIT_POINTS
+            self.max_hp = Tank.HIT_POINTS
+            self.speed_mod = 1
+            self.damage = Tank.WEAPON_DAMAGE
+            self.bullet_speed = Tank.BULLET_SPEED
 
-        def accelerate(self):
+        def accelerate(self, accelerate_mod=1):
             """ Call this function to make the tank move forward. """
             sounds.movement_sound.stop()
             sounds.engine_sound.stop()
             sounds.movement_sound.play()
             sounds.engine_sound.set_volume(0.2)
             sounds.engine_sound.play()
-            self.acceleration = 2
+            self.acceleration = 2 * accelerate_mod
 
         def stop_moving(self):
             """ Call this function to make the tank stop moving. """
@@ -172,7 +182,7 @@ class Tank(GamePhysicsObject):
             self.acceleration = 0
             self.body.velocity = pymunk.Vec2d.zero()
 
-        def decelerate(self):
+        def decelerate(self, decelerate_mod=1):
             """ Call this function to make the tank move backward. """
             sounds.movement_sound.stop()
             sounds.engine_sound.stop()
@@ -180,15 +190,15 @@ class Tank(GamePhysicsObject):
             sounds.engine_sound.set_volume(0.2)
             sounds.engine_sound.play()
 
-            self.acceleration = -2
+            self.acceleration = -2 * decelerate_mod
 
-        def turn_left(self):
+        def turn_left(self, turn_mod=1):
             """ Makes the tank turn left (counter clock-wise). """
-            self.rotation = -2
+            self.rotation = -2 * turn_mod
 
-        def turn_right(self):
+        def turn_right(self, turn_mod=1):
             """ Makes the tank turn right (clock-wise). """
-            self.rotation = 2
+            self.rotation = 2 * turn_mod
 
         def stop_turning(self):
             """ Call this function to make the tank stop turning. """
@@ -197,7 +207,7 @@ class Tank(GamePhysicsObject):
 
         def ability_to_shoot(self):
             """ Call this function to check whether a tank can shoot or not """
-            return self.shoot_last >= 50
+            return self.shoot_last >= FRAMERATE/self.fire_rate
 
         def ability_to_die(self):
             """ Call this function to check whether a tank can die or not """
@@ -228,7 +238,7 @@ class Tank(GamePhysicsObject):
                 self.flag.orientation = -math.degrees(self.body.angle)
             # Else ensure that the tank has its normal max speed
             else:
-                self.max_speed = Tank.NORMAL_MAX_SPEED
+                self.max_speed = Tank.NORMAL_MAX_SPEED * self.speed_mod
             self.shoot_last += 1
 
         def try_grab_flag(self, flag):
@@ -243,7 +253,7 @@ class Tank(GamePhysicsObject):
                     # Grab the flag !
                     self.flag = flag
                     flag.is_on_tank = True
-                    self.max_speed = Tank.FLAG_MAX_SPEED
+                    self.max_speed = Tank.FLAG_MAX_SPEED * self.speed_mod
                     sounds.flag_capture_sound.play()
 
         def has_won(self):
@@ -265,8 +275,6 @@ class Bullet(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
     # You can add more constants here if needed later
 
-    NORMAL_MAX_SPEED = 5.0
-
     def __init__(self, tank, sprite, space):
 
         x_start = tank.body.position.x + (0.4 * math.cos(math.radians(tank.screen_orientation()-90)))
@@ -277,7 +285,8 @@ class Bullet(GamePhysicsObject):
         self.speed = 5
         self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation()-90))), self.speed * (math.sin(math.radians(tank.screen_orientation()+90))))
         self.space = space
-        self.max_speed = Bullet.NORMAL_MAX_SPEED     # Impose a maximum speed to the bullet
+        self.max_speed = tank.bullet_speed    # Impose a maximum speed to the bullet
+        self.damage = tank.damage
 
     def update(self):
         """ A function to update the objects coordinates. Gets called at every tick of the game. """
@@ -291,10 +300,11 @@ class Bullet(GamePhysicsObject):
 
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
-
+    HIT_POINTS = 2
     def __init__(self, x, y, sprite, movable, space, destructable):
         """ It takes as arguments the coordinate of the starting position of the box (x,y) and the box model (boxmodel). """
         super().__init__(x, y, 0, sprite, space, movable)
+        self.hp = Box.HIT_POINTS
         self.destructable = destructable
 
 

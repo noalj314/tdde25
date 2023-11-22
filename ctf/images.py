@@ -39,6 +39,7 @@ bullet = pygame.transform.rotate(bullet, -90)
 tanks = [load_image('tank_orange.png'), load_image('tank_blue.png'), load_image('tank_white.png'),
          load_image('tank_yellow.png'), load_image('tank_red.png'), load_image('tank_gray.png')]
 
+colours = [0xff8000, 0x0000ff, 0xffffff, 0xffff00, 0xff0000, 0x808080]
 # List of image of bases corresponding to the color of each tank
 bases = [load_image('base_orange.png'), load_image('base_blue.png'), load_image('base_white.png'),
          load_image('base_yellow.png'), load_image('base_red.png'), load_image('base_gray.png')]

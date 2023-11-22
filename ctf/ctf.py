@@ -8,13 +8,21 @@ space = pymunk.Space()
 space.gravity = (0.0, 0.0)
 space.damping = 0.1  # Adds friction to the ground for all objects
 
-    # -- Initialise the display
+# -- Initialise the display
 pygame.init()
 screen = pygame.display.set_mode((800,600))
+ui_screen = pygame.display.set_mode((800,600))
 
-    # -- Initialise the clock
+# -- Initialise the clock
 clock = pygame.time.Clock()
 
+
+UI_WIDTH = 200
+control_mode = "turn"
+
+
+# -- Import from the ctf framework
+# The framework needs to be imported after initialisation of pygame
 
 import ai
 import images
@@ -42,6 +50,13 @@ def main_game():
     # -- Variables
     #   Define the current level
 
+def main_game():
+    
+    # -- Initialise the physics
+    space = pymunk.Space()
+    space.gravity = (0.0, 0.0)
+    space.damping = 0.1  # Adds friction to the ground for all objects
+    global multiplayer, current_map, screen, control_mode
         # -- List of all game objects
     current_map = menu.current_map
     multiplayer = menu.multiplayer
@@ -85,33 +100,36 @@ def main_game():
         flag.is_on_tank = False
         return flag
 
-    def hit(item):
+    def hit(item, bullet):
         """Update the dictionary hit_points if a tank or wood wall is hit"""
-        if item not in hit_points:
-            hit_points[item] = 1
+        item.hp -= bullet.damage
+        if item.hp <= 0:
+            if isinstance(item, gameobjects.Tank):
+                if item.flag:
+                    drop_flag(item, flag)
+                reset_tank(item)
+                item.hp = item.max_hp
+            else:
+                remove_shape(space, item.shape)
+                try:
+                    remove_from_list(game_objects_list, item)
+                except ValueError:
+                    print("Unable to remove box from game_objects_list")
+            return True
         else:
-            hit_points[item] += 1
-        return hit_points
+            return False
 
     def collision_bullet_wood(arb, space, data):
         """Triggered when bullet and wooden box collide, removing both from the space and their lists."""
-        remove_shape(space, arb.shapes[0])
+        bullet = arb.shapes[0].parent
+        remove_shape(space,arb.shapes[0])
         sounds.explosion_sound.play()
         try:
             remove_from_list(bullet_list,arb.shapes[0].parent)
         except ValueError:
             print("Unable to remove bullet from bullet_list when hit wood")
-        hit(arb.shapes[1].parent)
-        if hit_points[arb.shapes[1].parent] == 2:
-            remove_shape(space, arb.shapes[1])
-            hit_points[arb.shapes[1].parent] = 0
-            try:
-                remove_from_list(game_objects_list,arb.shapes[1].parent)
-            except ValueError:
-                print("Unable to remove box from game_objects_list")
-            return True
-        else:
-            return False
+        return hit(arb.shapes[1].parent, bullet)
+        
 
     def collision_bullet_wall(arb, space, data):
         """Triggered when bullet and wall collide, removing the bullet from the space and bullet_list."""
@@ -126,6 +144,7 @@ def main_game():
     def collision_bullet_tank(arb, space, data):
         """Triggered when bullet and tank collide, removing the bullet from the space and bullet_list and resetting the position of the tank."""
         tank = arb.shapes[1].parent
+        bullet = arb.shapes[0].parent
         remove_shape(space, arb.shapes[0])
         sounds.explosion_sound.play()
         try:
@@ -133,15 +152,8 @@ def main_game():
         except ValueError:
             print("Unable to remove bullet from bullet_list when hit wall")
         if gameobjects.Tank.ability_to_die(tank):
-            hit(tank)
-        if hit_points[tank] == 2:
-            if tank.flag:
-                drop_flag(tank, flag)
-            reset_tank(tank)
-            hit_points[tank] = 0
-            return True
-        else:
-            return False
+            return hit(tank, bullet)
+        return True
 
     def collision_handler(space, object1, object2, collision_function):
         """Creates a CollisionHandler with two collision_types and a function which triggers on contact."""
@@ -250,6 +262,35 @@ def main_game():
         game_objects_list.append(flag)
         return flag
     
+    pygame.font.init()
+    my_font = pygame.font.SysFont('Comic Sans MS', 20)
+    
+    def update_ui():
+        for i in range(len(tanks_list)):
+            place = pygame.Rect((screen.get_size()[0]-UI_WIDTH)*(i%2), screen.get_size()[1]/int(len(tanks_list)/2)*(i//2), UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
+            colour = images.colours[i]
+            
+            pygame.draw.rect(screen, colour, place)
+            
+            text_surface = my_font.render('HP:', False, (0, 0, 0))
+            screen.blit(text_surface, (place.x + 10, place.y + 10))
+            for i in range(tanks_list[i].max_hp):
+                rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
+                pygame.draw.rect(screen, 0x000000, rect)
+            for i in range(tanks_list[i].hp):
+                rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
+                pygame.draw.rect(screen, 0x00ff00, rect)
+            text_surface = my_font.render('Score ' + str(tanks_list[i].score), False, (0, 0, 0))
+            screen.blit(text_surface, (place.x + 10, place.y + 30))
+            text_surface = my_font.render('Dmg ' + str(tanks_list[i].damage), False, (0, 0, 0))
+            screen.blit(text_surface, (place.x + 10, place.y + 50))
+            text_surface = my_font.render('Fire Rate ' + str(tanks_list[i].fire_rate) + "/s", False, (0, 0, 0))
+            screen.blit(text_surface, (place.x + 10, place.y + 70))
+            text_surface = my_font.render('Speed ' + str(tanks_list[i].max_speed), False, (0, 0, 0))
+            screen.blit(text_surface, (place.x + 10, place.y + 90))
+            text_surface = my_font.render('Bullet Speed ' + str(tanks_list[i].bullet_speed), False, (0, 0, 0))
+            screen.blit(text_surface, (place.x + 10, place.y + 110))
+    
     flag = create_flag()
     barrier(current_map,space)
     create_boxes()
@@ -277,7 +318,10 @@ def main_game():
     variabel = 0
     score_screen_background = pygame.Surface(screen.get_size())
     score_screen_background.fill(pygame.Color("black"))
-
+    
+    pressed = {}
+    #def orthogonal(u, d, l, r):
+        
     while running:
         # -- Handle the events
         for event in pygame.event.get():
@@ -342,7 +386,7 @@ def main_game():
             skip_update -= 1
     
         #   Check collisions and update the objects position
-        space.step(1 / FRAMERATE)
+        space.step(1 / gameobjects.FRAMERATE)
     
         #   Update object that depends on an other object position (for instance a flag)
         for obj in game_objects_list:
@@ -370,12 +414,9 @@ def main_game():
                     start_rect = pygame.Rect(350, 300, 250,50)
                     
                     pygame.draw.rect(screen, pygame.Color("blue"), menu_rect, border_radius=10)
-                    pygame.font.init()
-                    my_font = pygame.font.SysFont('Comic Sans MS', 30)
                     text_surface = my_font.render('Main Menu', False, (0, 0, 0))
                     
                     pygame.draw.rect(screen, pygame.Color("red"), start_rect, border_radius=10)
-                    pygame.font.init()
                     text_surface2 = my_font.render('Restart', False, (0, 0, 0))
                     
                     screen.blit(text_surface, (menu_rect.x, menu_rect.y))
@@ -388,16 +429,7 @@ def main_game():
                     for item,i  in zip(tanks_list, range(len(tanks_list))):
                         menu.text_creator(screen, 50, f"Player {i+1}: {score_dic[item]}", pygame.Color("white"),(100,100+y))
                         y += 100
-                      # print(score_dic)
-                        #reset_tank(item)
-                    #or i in range(len(tanks_list)):
-                        #print(f"Player {i+1}: {tanks_list[i].score}")
-                    for i in range(0, len(current_map.start_positions)):
-                        if not multiplayer and i > 0:
-                            ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                        elif multiplayer and i > 1:
-                            ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-    
+                        
                     
                     
                     for event in pygame.event.get():
@@ -427,7 +459,16 @@ def main_game():
                                 
                     pygame.display.flip()
     
-                
+                for item in tanks_list:
+                    reset_tank(item)
+                for i in range(len(tanks_list)):
+                    print(f"Player {i+1}: {tanks_list[i].score}")
+                for i in range(0, len(current_map.start_positions)):
+                    if not multiplayer and i > 0:
+                        ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+                    elif multiplayer and i > 1:
+                        ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+    
         foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
         background = create_background(screen, current_map, images)
     
@@ -440,25 +481,25 @@ def main_game():
         bots()
     
         # <INSERT DISPLAY BACKGROUND>
-        screen.blit(background, (0, 0))
-        screen.blit(foreground, (0, 0))
+        screen.blit(background, (UI_WIDTH, 0))
+        # screen.blit(foreground, (0, 0))
     
-    
+        update_ui()
         # <INSERT DISPLAY OBJECTS>
         # Update the display of the game objects on the screen
         for obj in game_objects_list:
-            obj.update_screen(screen)
+            obj.update_screen(screen, UI_WIDTH)
         for tank in tanks_list:
-            tank.update_screen(screen)
+            tank.update_screen(screen, UI_WIDTH)
         for bullet in bullet_list:
-            bullet.update_screen(screen)
+            bullet.update_screen(screen, UI_WIDTH)
     
     
         #   Redisplay the entire screen (see double buffer technique)
         pygame.display.flip()
     
         #   Control the game framerate
-        clock.tick(FRAMERATE)
+        clock.tick(gameobjects.FRAMERATE)
     
-menu.welcome_screen()
+menu.welcome_screen(UI_WIDTH)
 main_game()

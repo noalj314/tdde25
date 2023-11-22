@@ -18,7 +18,7 @@ def map_options(screen, ma, pos):
     text_creator(screen, 40, ma, pygame.Color('white'), pos)
 
 
-def welcome_screen():
+def welcome_screen(ui_width):
     global multiplayer,current_map, screen
     not_playing = True
     current_map = None
@@ -76,5 +76,5 @@ def welcome_screen():
                     
         pygame.display.flip()
     
-    screen = pygame.display.set_mode(current_map.rect().size)
+    screen = pygame.display.set_mode(current_map.rect().size + pymunk.Vec2d(ui_width*2,0))
 
