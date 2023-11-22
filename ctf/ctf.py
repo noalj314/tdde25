@@ -35,7 +35,7 @@ import menu
 # ----- Initialisation ----- #
 
 def main_game():
-    global multiplayer, current_map, screen, score_dic, tanks_list
+    global multiplayer, current_map, screen, score_dic, tanks_list, flag
  
     space = pymunk.Space()
     space.gravity = (0.0, 0.0)
@@ -274,11 +274,11 @@ def main_game():
             
             text_surface = my_font.render('HP:', False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 10))
-            for i in range(tanks_list[i].max_hp):
-                rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
+            for l in range(tanks_list[i].max_hp):
+                rect = pygame.Rect(place.x + (l+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x000000, rect)
-            for i in range(tanks_list[i].hp):
-                rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
+            for c in range(tanks_list[i].hp):
+                rect = pygame.Rect(place.x + (c+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x00ff00, rect)
             text_surface = my_font.render('Score ' + str(tanks_list[i].score), False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 30))
@@ -403,64 +403,7 @@ def main_game():
                 tank.flag = None
                 i = tanks_list
                 score_dic[tank] += 1
-                title_score = True
                 screen = pygame.display.set_mode((1024,1024))
-                while title_score: #Initalise score screen
-                    screen.fill(pygame.Color("black"))
-    
-                    screen.blit(score_screen_background, (0, 0))
-                    
-                    menu_rect = pygame.Rect(350, 200, 250,50)
-                    start_rect = pygame.Rect(350, 300, 250,50)
-                    
-                    pygame.draw.rect(screen, pygame.Color("blue"), menu_rect, border_radius=10)
-                    text_surface = my_font.render('Main Menu', False, (0, 0, 0))
-                    
-                    pygame.draw.rect(screen, pygame.Color("red"), start_rect, border_radius=10)
-                    text_surface2 = my_font.render('Restart', False, (0, 0, 0))
-                    
-                    screen.blit(text_surface, (menu_rect.x, menu_rect.y))
-                    screen.blit(text_surface2, (start_rect.x, start_rect.y))
-                    
-                    y = 100
-                    #for i in range(len(tanks_list)):
-                       # menu.text_creator(screen, 50, f"Player {i+1}: {score_dic[i]}", pygame.Color("white"),(100,100+y))
-                        #y += 100
-                    for item,i  in zip(tanks_list, range(len(tanks_list))):
-                        menu.text_creator(screen, 50, f"Player {i+1}: {score_dic[item]}", pygame.Color("white"),(100,100+y))
-                        y += 100
-                        
-                    
-                    
-                    for event in pygame.event.get():
-                        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                            title_score = False
-                            running = False
-                        if event.type == pygame.MOUSEBUTTONDOWN:
-                            mouse_pos = event.pos
-                            map_y = 650
-                            
-                            menu_rect_py = pygame.Rect(350, 200, 250,50)
-                            start_rect_py = pygame.Rect(350, 300, 250,50)
-                            if menu_rect_py.collidepoint(mouse_pos):
-                                title_score = False
-                                running = False
-                                score_dic = {}
-                                tanks_list = []
-                                menu.welcome_screen()
-                                
-    
-                            if start_rect_py.collidepoint(mouse_pos):
-                                title_score = False
-                                running = False
-                                screen = pygame.display.set_mode(current_map.rect().size)  
-                                reset_game()        
-                                running = True                      
-                                
-                    pygame.display.flip()
-    
-                for item in tanks_list:
-                    reset_tank(item)
                 for i in range(len(tanks_list)):
                     print(f"Player {i+1}: {tanks_list[i].score}")
                 for i in range(0, len(current_map.start_positions)):
@@ -469,6 +412,7 @@ def main_game():
                     elif multiplayer and i > 1:
                         ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
     
+             
         foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
         background = create_background(screen, current_map, images)
     
