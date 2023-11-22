@@ -45,6 +45,7 @@ class Ai:
         self.max_x = currentmap.width - 1
         self.max_y = currentmap.height - 1
         self.move_cycle = self.move_cycle_gen()
+        self.metal_boxes = False
         
         self.tank.speed_mod = 2
         #self.tank.fire_rate = gameobjects.Tank.FIRE_RATE * 0.5
@@ -58,13 +59,16 @@ class Ai:
         self.grid_pos = self.get_tile_of_position((self.tank.body.position.x, self.tank.body.position.y))
         
     def move_cycle_gen(self):
+        """ Generator for a move cycle to move toward the next tile """
         while True:
             every2 = 0 # To counteract delay in movement
             self.update_grid_pos()
             self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
             if not self.path:
+                self.metal_boxes = True
                 yield
                 continue # Start from the top of our cycle
+            self.metal_boxes = False
             next_coord = self.path.popleft()
             last_distance = 10 # High value
             yield
@@ -99,8 +103,10 @@ class Ai:
 
 
     def decide(self, background):
+        """ Called every tick, tank shoots and moves. """
         self.maybe_shoot(background)
         next(self.move_cycle)
+        #print(self.path)
     
     def maybe_shoot(self, background):
         """ Makes a raycast query in front of the tank. If another tank
@@ -108,8 +114,8 @@ class Ai:
         """
         angle = self.tank.body.angle + math.pi/2
 
-        x_start = self.tank.body.position.x + (0.4 * math.cos(angle))
-        y_start = self.tank.body.position.y + (0.4 * math.sin(angle))
+        x_start = self.tank.body.position.x + (0.6 * math.cos(angle))
+        y_start = self.tank.body.position.y + (0.6 * math.sin(angle))
 
         x_end = self.tank.body.position.x + (max(self.max_x,self.max_y) * math.cos(angle))
         y_end = self.tank.body.position.y + (max(self.max_x,self.max_y) * math.sin(angle))
@@ -121,6 +127,7 @@ class Ai:
         try:
             if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape,'parent'):            
                 if isinstance(res.shape.parent,gameobjects.Tank) or (isinstance(res.shape.parent,gameobjects.Box) and res.shape.parent.sprite == images.woodbox):
+                    print(res.shape.parent.body.position)
                     self.tank.shoot(self.space,self.bullet_list)
         except AttributeError:
             print("Fel")
@@ -137,6 +144,10 @@ class Ai:
             (node, path) = queue.popleft()
             if node == end:
                 path.popleft()
+                if end == Vec2d(int(self.flag.x), int(self.flag.y)):
+                    path.append(Vec2d(self.flag.x-0.5, self.flag.y-0.5))
+                elif end == Vec2d(int(self.tank.start_position.x), int(self.tank.start_position.y)):
+                    path.append(Vec2d(self.tank.start_position.x-0.5, self.tank.start_position.y-0.5))
                 return path
     
             if node in visited:
@@ -192,7 +203,8 @@ class Ai:
     def filter_tile_neighbors(self, coord):
         """ Used to filter the tile to check if it is a neighbor of the tank.
         """
-        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and (self.currentmap.boxAt(coord.x, coord.y) == 0 or self.currentmap.boxAt(coord.x, coord.y) == 2):
+        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and (self.currentmap.boxAt(coord.x, coord.y) == 0 or
+                self.currentmap.boxAt(coord.x, coord.y) == 2 or (self.currentmap.boxAt(coord.x, coord.y) == 3 and self.metal_boxes)):
             return True
         return False
 

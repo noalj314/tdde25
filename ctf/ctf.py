@@ -246,11 +246,11 @@ def main_game():
             
             text_surface = my_font.render('HP:', False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 10))
-            for i in range(tanks_list[i].max_hp):
-                rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
+            for j in range(tanks_list[i].max_hp):
+                rect = pygame.Rect(place.x + (j+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x000000, rect)
-            for i in range(tanks_list[i].hp):
-                rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
+            for j in range(tanks_list[i].hp):
+                rect = pygame.Rect(place.x + (j+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x00ff00, rect)
             text_surface = my_font.render('Score ' + str(tanks_list[i].score), False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 30))

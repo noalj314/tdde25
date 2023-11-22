@@ -231,7 +231,7 @@ class Tank(GamePhysicsObject):
             self.respawn += 1
 
         def post_update(self):
-            # If the tank carries the flag, then update the positon of the flag
+            """ If the tank carries the flag, then update the positon of the flag """
             if (self.flag is not None):
                 self.flag.x = self.body.position[0]
                 self.flag.y = self.body.position[1]
