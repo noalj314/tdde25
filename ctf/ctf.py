@@ -34,10 +34,19 @@ import maps
 import sounds
 import menu
 
+    # -- Constants
+multiplayer = None
+ 
+
+    # -- Variables
+    #   Define the current level
+
+
+
+
+
 def main_game():
     
-    # -- Constants
-    multiplayer = None
     # -- Initialise the physics
     space = pymunk.Space()
     space.gravity = (0.0, 0.0)
@@ -135,10 +144,10 @@ def main_game():
         handle = space.add_collision_handler(object1, object2)
         handle.pre_solve = collision_function
         return handle
-""
-        remove_shape(space, arb.shapes[0],arb.shapes[1]
+
     def collision_bullet_bullet(arb, space, data):
-        """Triggered when bullet and another bullet collide, removing the bullets from the space and bullet_list.")
+        """Triggered when bullet and another bullet collide, removing the bullets from the space and bullet_list."""
+        remove_shape(space, arb.shapes[0],arb.shapes[1])
         sounds.explosion_sound.play()
         try:
             remove_from_list(bullet_list, arb.shapes[0].parent)
@@ -229,38 +238,29 @@ def main_game():
     my_font = pygame.font.SysFont('Comic Sans MS', 20)
     
     def update_ui():
-        for tank in tanks_list:
-            if tank == tanks_list[0]:
-                place = pygame.Rect(0, 0, UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
-                colour = 0xff0000
-            elif tank == tanks_list[1]:
-                place = pygame.Rect(screen.get_size()[0]-UI_WIDTH, 0, UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
-                colour = 0x0000ff
-            elif tank == tanks_list[2]:
-                place = pygame.Rect(0, screen.get_size()[1]/int(len(tanks_list)/2), UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
-                colour = 0xffffff
-            elif tank == tanks_list[3]:
-                place = pygame.Rect(screen.get_size()[0]-UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2), UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
-                colour = 0xffff00
+        for i in range(len(tanks_list)):
+            place = pygame.Rect((screen.get_size()[0]-UI_WIDTH)*(i%2), screen.get_size()[1]/int(len(tanks_list)/2)*(i//2), UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
+            colour = images.colours[i]
+            
             pygame.draw.rect(screen, colour, place)
             
             text_surface = my_font.render('HP:', False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 10))
-            for i in range(tank.max_hp):
+            for i in range(tanks_list[i].max_hp):
                 rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x000000, rect)
-            for i in range(tank.hp):
+            for i in range(tanks_list[i].hp):
                 rect = pygame.Rect(place.x + (i+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x00ff00, rect)
-            text_surface = my_font.render('Score ' + str(tank.score), False, (0, 0, 0))
+            text_surface = my_font.render('Score ' + str(tanks_list[i].score), False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 30))
-            text_surface = my_font.render('Dmg ' + str(tank.damage), False, (0, 0, 0))
+            text_surface = my_font.render('Dmg ' + str(tanks_list[i].damage), False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 50))
-            text_surface = my_font.render('Fire Rate ' + str(tank.fire_rate) + "/s", False, (0, 0, 0))
+            text_surface = my_font.render('Fire Rate ' + str(tanks_list[i].fire_rate) + "/s", False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 70))
-            text_surface = my_font.render('Speed ' + str(tank.max_speed), False, (0, 0, 0))
+            text_surface = my_font.render('Speed ' + str(tanks_list[i].max_speed), False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 90))
-            text_surface = my_font.render('Bullet Speed ' + str(tank.bullet_speed), False, (0, 0, 0))
+            text_surface = my_font.render('Bullet Speed ' + str(tanks_list[i].bullet_speed), False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 110))
     
     flag = create_flag()
