@@ -4,7 +4,6 @@ import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk
-import sys
 space = pymunk.Space()
 space.gravity = (0.0, 0.0)
 space.damping = 0.1  # Adds friction to the ground for all objects
@@ -26,10 +25,10 @@ import menu
 
 
 # ----- Initialisation ----- #
-def main_game():
-    global multiplayer, current_map, screen
 
-    # -- Initialise the physics
+def main_game():
+    global multiplayer, current_map, screen, score_dic, tanks_list
+ 
     space = pymunk.Space()
     space.gravity = (0.0, 0.0)
     space.damping = 0.1 
@@ -39,25 +38,27 @@ def main_game():
     # The framework needs to be imported after initialisation of pygame
         # -- Constants
     FRAMERATE = 50
-    multiplayer = None
-    
 
     # -- Variables
     #   Define the current level
-
-        
-
-
 
         # -- List of all game objects
     current_map = menu.current_map
     multiplayer = menu.multiplayer
     screen = menu.screen
     game_objects_list = []
-    tanks_list = []
     bullet_list = []
     ai_list = []
     hit_points = {}
+
+    if 'tanks_list' not in globals():
+        tanks_list = []
+    if 'score_dic' not in globals():
+        score_dic = {}
+   # print(hit_points, ai_list, bullet_list, game_objects_list, tanks_list, score_dic)
+
+    
+
 
     def remove_shape(space, shape, shape2=None):
         """Removes shapes and bodies from the space"""
@@ -70,10 +71,12 @@ def main_game():
 
     def reset_tank(tank):
         """Reset the tanks position to its starting position."""
+        tank.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
+        tank.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+        tank.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
         tank.body.angle = tank.start_orientation
         tank.body.position = tank.start_position.x, tank.start_position.y
         tank.respawn = 0
-
 
     def drop_flag(tank,flag):
         """Drops the flag at the tanks current posistion"""
@@ -208,26 +211,38 @@ def main_game():
     #-- Create the tanks and the bases
     def create_tanks():
     # Loop over the starting poistion
-        for i in range(0, len(current_map.start_positions)):
-        # Get the starting position of the tank "i"
-            pos = current_map.start_positions[i]
-        # Create the tank, images.tanks contains the image representing the tank
-            tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
-        #create the base at the same place as the tank
-            base = gameobjects.GameVisibleObject(pos[0], pos[1], images.bases[i])
-        # Add the tank to the list of tanks
-            tanks_list.append(tank)
-        #Add collision_type for the tank
-            tank.shape.collision_type = gameobjects.collision_types["tank"]
-        # Add the base for the tank to the game_objects_list
-            game_objects_list.append(base)
-        # Create ai instances for each tank except the first
-            if multiplayer and i > 1:
-                bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                ai_list.append(bot)
-            elif not multiplayer and i > 0:
-                bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                ai_list.append(bot)
+        if not tanks_list:
+            for i in range(0, len(current_map.start_positions)):
+            
+            # Get the starting position of the tank "i"
+                pos = current_map.start_positions[i]
+            # Create the tank, images.tanks contains the image representing the tank
+                tank = gameobjects.Tank(pos[0], pos[1], pos[2], images.tanks[i], space)
+            #create the base at the same place as the tank
+                base = gameobjects.GameVisibleObject(pos[0], pos[1], images.bases[i])
+            # Add the tank to the list of tanks
+                tanks_list.append(tank)
+            #Add collision_type for the tank
+                tank.shape.collision_type = gameobjects.collision_types["tank"]
+            # Add the base for the tank to the game_objects_list
+                game_objects_list.append(base)
+            #
+                
+            # Create ai instances for each tank except the first
+                
+                if multiplayer and i > 1:
+                    bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+                    ai_list.append(bot)
+                elif not multiplayer and i > 0:
+                    bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+                    ai_list.append(bot)
+            if not score_dic:
+                for tank in tanks_list:
+                        score_dic[tank] = 0
+        else:
+            for tank in tanks_list:
+                reset_tank(tank)
+
     # <INSERT CREATE FLAG>
     #-- Create the flag
     def create_flag():
@@ -239,6 +254,20 @@ def main_game():
     barrier(current_map,space)
     create_boxes()
     create_tanks()
+
+    def reset_game():
+        current_map = menu.current_map
+        game_objects_list.clear()
+        bullet_list.clear() 
+        ai_list.clear()
+        hit_points.clear()
+        flag = create_flag()
+        
+        print(tanks_list)
+        create_boxes()
+        for tank in tanks_list:
+            reset_tank(tank)
+
 # ----- Main Loop -----#
 
 # -- Control whether the game run
@@ -328,7 +357,8 @@ def main_game():
                 game_objects_list.remove(tank.flag)
                 flag = create_flag()
                 tank.flag = None
-                tank.score += 1
+                i = tanks_list
+                score_dic[tank] += 1
                 title_score = True
                 screen = pygame.display.set_mode((1024,1024))
                 while title_score: #Initalise score screen
@@ -352,13 +382,16 @@ def main_game():
                     screen.blit(text_surface2, (start_rect.x, start_rect.y))
                     
                     y = 100
-                    for i in range(len(tanks_list)):
-                        menu.text_creator(screen, 50, f"Player {i+1}: {tanks_list[i].score}", pygame.Color("white"),(100,100+y))
+                    #for i in range(len(tanks_list)):
+                       # menu.text_creator(screen, 50, f"Player {i+1}: {score_dic[i]}", pygame.Color("white"),(100,100+y))
+                        #y += 100
+                    for item,i  in zip(tanks_list, range(len(tanks_list))):
+                        menu.text_creator(screen, 50, f"Player {i+1}: {score_dic[item]}", pygame.Color("white"),(100,100+y))
                         y += 100
-                    for item in tanks_list:
-                        reset_tank(item)
-                    for i in range(len(tanks_list)):
-                        print(f"Player {i+1}: {tanks_list[i].score}")
+                      # print(score_dic)
+                        #reset_tank(item)
+                    #or i in range(len(tanks_list)):
+                        #print(f"Player {i+1}: {tanks_list[i].score}")
                     for i in range(0, len(current_map.start_positions)):
                         if not multiplayer and i > 0:
                             ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
@@ -380,14 +413,17 @@ def main_game():
                             if menu_rect_py.collidepoint(mouse_pos):
                                 title_score = False
                                 running = False
+                                score_dic = {}
+                                tanks_list = []
                                 menu.welcome_screen()
                                 
     
                             if start_rect_py.collidepoint(mouse_pos):
                                 title_score = False
                                 running = False
-                                screen = pygame.display.set_mode(current_map.rect().size)                                
-                                main_game()
+                                screen = pygame.display.set_mode(current_map.rect().size)  
+                                reset_game()        
+                                running = True                      
                                 
                     pygame.display.flip()
     

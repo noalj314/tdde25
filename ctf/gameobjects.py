@@ -150,7 +150,7 @@ class Tank(GamePhysicsObject):
             self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
             self.start_position = pymunk.Vec2d(x,
                                                y)  # Define the start position, which is also the position where the tank has to return with the flag
-            self.score = 0
+            #self.score = 0
 
         def accelerate(self):
             """ Call this function to make the tank move forward. """
