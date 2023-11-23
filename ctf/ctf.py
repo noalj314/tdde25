@@ -36,8 +36,13 @@ import menu
 
     # -- Constants
 multiplayer = None
+ 
 
-def main_game():
+    # -- Variables
+    #   Define the current level
+
+
+def main_game(score=[]):
     
     # -- Initialise the physics
     space = pymunk.Space()
@@ -64,9 +69,6 @@ def main_game():
 
     def reset_tank(tank):
         """Reset the tanks position to its starting position."""
-        tank.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
-        tank.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
-        tank.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
         tank.body.angle = tank.start_orientation
         tank.body.position = tank.start_position.x, tank.start_position.y
         tank.respawn = 0
@@ -216,6 +218,9 @@ def main_game():
         # Add the base for the tank to the game_objects_list
             game_objects_list.append(base)
         # Create ai instances for each tank except the first
+        
+            tank.score = score[i]
+        
             if multiplayer and i > 1:
                 bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
                 ai_list.append(bot)
@@ -400,8 +405,11 @@ def main_game():
                             if start_rect_py.collidepoint(mouse_pos):
                                 title_score = False
                                 running = False
-                                screen = pygame.display.set_mode(current_map.rect().size+pymunk.Vec2d(UI_WIDTH*2, 0))                                
-                                main_game()
+                                screen = pygame.display.set_mode(current_map.rect().size+pymunk.Vec2d(UI_WIDTH*2, 0))
+                                score_list = []
+                                for t in tanks_list:
+                                    score_list.append(t.score)
+                                main_game(score_list)
                                 
                     pygame.display.flip()
     
@@ -448,4 +456,4 @@ def main_game():
         clock.tick(gameobjects.FRAMERATE)
     
 menu.welcome_screen(UI_WIDTH)
-main_game()
+main_game([0,0,0,0,0,0])

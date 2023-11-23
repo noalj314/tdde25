@@ -143,10 +143,13 @@ class Ai:
             (node, path) = queue.popleft()
             if node == end:
                 path.popleft()
-                if end == Vec2d(int(self.flag.x), int(self.flag.y)):
-                    path.append(Vec2d(self.flag.x-0.5, self.flag.y-0.5))
-                elif end == Vec2d(int(self.tank.start_position.x), int(self.tank.start_position.y)):
+                if end == Vec2d(int(self.tank.start_position.x), int(self.tank.start_position.y)):
                     path.append(Vec2d(self.tank.start_position.x-0.5, self.tank.start_position.y-0.5))
+                elif end == Vec2d(int(self.flag.x), int(self.flag.y)):
+                    if path:
+                        path.popleft()
+                    path.append(Vec2d(self.flag.x-0.5, self.flag.y-0.5))
+                
                 return path
     
             if node in visited:

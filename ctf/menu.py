@@ -17,7 +17,6 @@ def text_creator(screen, size, text, colour, pos):
 def map_options(screen, ma, pos):
     text_creator(screen, 40, ma, pygame.Color('white'), pos)
 
-
 def welcome_screen(ui_width):
     global multiplayer,current_map, screen
     not_playing = True
