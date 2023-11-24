@@ -10,14 +10,19 @@ screen = pygame.display.set_mode((1024,1024))
 
 
 def text_creator(screen, size, text, colour, pos):
+    """ A function that creates text. """
     font = pygame.font.Font(None, size)
     text_create = font.render(text, True, colour)
     screen.blit(text_create, pos)
 
+
 def map_options(screen, ma, pos):
+    """ Handles the text for the map choices. """
     text_creator(screen, 40, ma, pygame.Color('white'), pos)
 
+
 def welcome_screen(ui_width):
+    """ The main function for the welcome screen. """
     global multiplayer,current_map, screen
     not_playing = True
     current_map = None
@@ -76,4 +81,3 @@ def welcome_screen(ui_width):
         pygame.display.flip()
     
     screen = pygame.display.set_mode(current_map.rect().size + pymunk.Vec2d(ui_width*2,0))
-
