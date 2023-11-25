@@ -143,6 +143,7 @@ class Tank(GamePhysicsObject):
         HIT_POINTS = 4
         WEAPON_DAMAGE = 1
         BULLET_SPEED = 5
+        ROTATION_SPEED = 3
 
         def __init__(self, x, y, orientation, sprite, space):
             super().__init__(x, y, orientation, sprite, space, True)
@@ -161,6 +162,7 @@ class Tank(GamePhysicsObject):
             self.speed_mod = 1
             self.damage = Tank.WEAPON_DAMAGE
             self.bullet_speed = Tank.BULLET_SPEED
+            self.rotation_speed = Tank.ROTATION_SPEED
 
         def accelerate(self, accelerate_mod=1):
             """ Call this function to make the tank move forward. """
@@ -192,13 +194,13 @@ class Tank(GamePhysicsObject):
 
             self.acceleration = -2 * decelerate_mod
 
-        def turn_left(self, turn_mod=1):
+        def turn_left(self):
             """ Makes the tank turn left (counter clock-wise). """
-            self.rotation = -2 * turn_mod
+            self.rotation = -self.rotation_speed
 
-        def turn_right(self, turn_mod=1):
+        def turn_right(self):
             """ Makes the tank turn right (clock-wise). """
-            self.rotation = 2 * turn_mod
+            self.rotation = self.rotation_speed
 
         def stop_turning(self):
             """ Call this function to make the tank stop turning. """
