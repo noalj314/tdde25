@@ -8,14 +8,14 @@ multiplayer = None
 
 screen = pygame.display.set_mode((1024,1024))
 
+menu_font = pygame.font.Font(None, 50)
 
-def text_creator(screen, size, text, colour, pos):
-    font = pygame.font.Font(None, size)
+def text_creator(screen, font, text, colour, pos):
     text_create = font.render(text, True, colour)
     screen.blit(text_create, pos)
 
 def map_options(screen, ma, pos):
-    text_creator(screen, 40, ma, pygame.Color('white'), pos)
+    text_creator(screen, menu_font, ma, pygame.Color('white'), pos)
 
 def welcome_screen(ui_width):
     global multiplayer,current_map, screen
@@ -31,8 +31,8 @@ def welcome_screen(ui_width):
         
         pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect, border_radius=10)
         pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect, border_radius=10)
-        text_creator(screen, 50,"Singleplayer", pygame.Color("white"),(650,660))
-        text_creator(screen, 50,"Multiplayer", pygame.Color("white"),(650,770))
+        text_creator(screen, menu_font,"Singleplayer", pygame.Color("white"),(650,660))
+        text_creator(screen, menu_font,"Multiplayer", pygame.Color("white"),(650,770))
         
         map_options(screen, maps.maps_list[0], (185, 650 + 40)) #creates text
         thumbnail = maps.maps_list_no_str[0].gen_thumbnail() # generates thumbnail
@@ -69,9 +69,9 @@ def welcome_screen(ui_width):
                         not_playing = False
                         current_map = ma 
         if multiplayer:
-            text_creator(screen, 50, "Multiplayer Activated", pygame.Color("red"), (575, 820))
+            text_creator(screen, menu_font, "Multiplayer Activated", pygame.Color("red"), (575, 820))
         if not multiplayer:
-            text_creator(screen, 50, "Singleplayer Activated", pygame.Color("blue"), (565, 710))
+            text_creator(screen, menu_font, "Singleplayer Activated", pygame.Color("blue"), (565, 710))
                     
         pygame.display.flip()
     

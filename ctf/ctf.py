@@ -264,16 +264,12 @@ def main_game(score=[]):
             for j in range(tanks_list[i].hp):
                 rect = pygame.Rect(place.x + (j+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x00ff00, rect)
-            text_surface = my_font.render('Score ' + str(tanks_list[i].score), False, (0, 0, 0))
-            screen.blit(text_surface, (place.x + 10, place.y + 30))
-            text_surface = my_font.render('Dmg ' + str(tanks_list[i].damage), False, (0, 0, 0))
-            screen.blit(text_surface, (place.x + 10, place.y + 50))
-            text_surface = my_font.render('Fire Rate ' + str(tanks_list[i].fire_rate) + "/s", False, (0, 0, 0))
-            screen.blit(text_surface, (place.x + 10, place.y + 70))
-            text_surface = my_font.render('Speed ' + str(tanks_list[i].max_speed), False, (0, 0, 0))
-            screen.blit(text_surface, (place.x + 10, place.y + 90))
-            text_surface = my_font.render('Bullet Speed ' + str(tanks_list[i].bullet_speed), False, (0, 0, 0))
-            screen.blit(text_surface, (place.x + 10, place.y + 110))
+            menu.text_creator(screen, my_font, 'Score ' + str(tanks_list[i].score), 0x000000, (place.x + 10, place.y + 30))
+            menu.text_creator(screen, my_font, 'Dmg ' + str(tanks_list[i].damage), 0x000000, (place.x + 10, place.y + 50))
+            menu.text_creator(screen, my_font, 'Fire Rate ' + str(tanks_list[i].fire_rate) + "/s", 0x000000, (place.x + 10, place.y + 70))
+            menu.text_creator(screen, my_font, 'Speed ' + str(tanks_list[i].max_speed), 0x000000, (place.x + 10, place.y + 90))
+            menu.text_creator(screen, my_font, 'Bullet Speed ' + str(tanks_list[i].bullet_speed), 0x000000, (place.x + 10, place.y + 110))
+
     
     def object_functions():
         """Calls functions to initialise the objects"""
