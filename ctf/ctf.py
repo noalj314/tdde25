@@ -443,6 +443,7 @@ def main_game(score=[]):
                                 title_score = False
                                 running = False
                                 menu.welcome_screen(UI_WIDTH)
+                                main_game([0,0,0,0,0,0])
                                 
                             if start_rect_py.collidepoint(mouse_pos):
                                 title_score = False
