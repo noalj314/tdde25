@@ -5,6 +5,9 @@ import pygame
 import pymunk
 import sounds
 import images
+import copy
+from pygame.examples.scaletest import SpeedTest
+from urllib.request import HTTPPasswordMgr
 
 
 FRAMERATE = 50
@@ -163,6 +166,7 @@ class Tank(GamePhysicsObject):
             self.damage = Tank.WEAPON_DAMAGE
             self.bullet_speed = Tank.BULLET_SPEED
             self.rotation_speed = Tank.ROTATION_SPEED
+            self.modifiers = {}
 
         def accelerate(self, accelerate_mod=1):
             """ Call this function to make the tank move forward. """
@@ -217,13 +221,40 @@ class Tank(GamePhysicsObject):
 
         def update(self):
             """ A function to update the objects coordinates. Gets called at every tick of the game. """
+            
+            spd = 1 # Mult
+            dmg = 0 # Add
+            bspd = 1 # Mult
+            rspd = 1 # Mult
+            hp = 0 # Add
+            fr = 1 # Mult
+            damage_taken = self.max_hp - self.hp
+            for i in self.modifiers.values():
+                if i.time <= 0:
+                    del i
+                    break
+                spd += i.max_speed
+                dmg += i.damage
+                bspd += i.bullet_speed
+                rspd += i.rotation_speed
+                hp += i.max_hp
+                fr += i.fire_rate
+            
+            self.max_speed = Tank.NORMAL_MAX_SPEED * spd
+            self.damage = Tank.WEAPON_DAMAGE + dmg
+            self.bullet_speed = Tank.BULLET_SPEED * bspd
+            self.rotation_speed = Tank.ROTATION_SPEED * rspd
+            self.max_hp = Tank.HIT_POINTS + hp
+            self.fire_rate = Tank.FIRE_RATE * fr
+            
+            self.hp = self.max_hp - damage_taken
 
             # Creates a vector in the direction we want accelerate / decelerate
             acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
             # Applies the vector to our velocity
             self.body.velocity += acceleration_vector
 
-            # Makes sure that we dont exceed our speed limit
+            # Makes sure that we don't exceed our speed limit
             velocity = clamp(self.max_speed, self.body.velocity.length)
             self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
 
@@ -257,7 +288,20 @@ class Tank(GamePhysicsObject):
                     flag.is_on_tank = True
                     self.max_speed = Tank.FLAG_MAX_SPEED * self.speed_mod
                     sounds.flag_capture_sound.play()
-
+                    
+        def try_grab_powerup(self, powerups):
+            """ Call this function to try to grab the flag, if the flag is not on other tank
+                and it is close to the current tank, then the current tank will grab the flag.
+            """
+            try:
+                powerup = powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
+                self.modifiers[powerup.sprite] = copy.deepcopy(powerup.modifier)
+                del powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
+                sounds.flag_capture_sound.play()
+            except KeyError:
+                pass
+            
+            
         def has_won(self):
             """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
             return self.flag is not None and (self.start_position - self.body.position).length < 0.2
@@ -344,6 +388,12 @@ class GameVisibleObject(GameObject):
         """ Overwrite from GameObject """
         return self.orientation
 
+class PowerUp(GameVisibleObject):
+    """ This class extends GameVisibleObject for representing powerups."""
+
+    def __init__(self, x, y, defines):
+        self.modifier = defines[1]
+        super().__init__(x, y, defines[0])
 
 class Flag(GameVisibleObject):
     """ This class extends GameVisibleObject for representing flags."""
@@ -351,3 +401,18 @@ class Flag(GameVisibleObject):
     def __init__(self, x, y):
         self.is_on_tank = False
         super().__init__(x, y, images.flag)
+
+class Modifier():
+    def __init__(self, time, speed, firerate, maxhp, dmg, bulletspd, rotationspd):
+        self.time = time
+        self.max_hp = maxhp
+        self.fire_rate = firerate
+        self.max_speed = speed
+        self.damage = dmg
+        self.bullet_speed = bulletspd
+        self.rotation_speed = rotationspd
+        
+    def tick(self):
+        self.time -= 1/FRAMERATE
+        
+        

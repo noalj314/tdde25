@@ -62,6 +62,10 @@ class Ai:
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
         self.grid_pos = self.get_tile_of_position((self.tank.body.position.x, self.tank.body.position.y))
+        """if self.grid_pos != new:
+            self.grid_pos = new
+            if self.currentmap.boxes[new.x, new.y] == 4:
+                self.tank.body.position"""
         
 
     def move_cycle_gen(self):

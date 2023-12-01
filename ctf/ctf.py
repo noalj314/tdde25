@@ -6,6 +6,7 @@ from pygame.locals import *
 from pygame.color import *
 import pymunk
 import sys
+import random
 
 
 # ----- Initialisation ----- #
@@ -56,6 +57,12 @@ def main_game(score=[]):
     tanks_list = []
     bullet_list = []
     ai_list = []
+    powerups_list = {} # The powerups on screen
+    powerup_defines = [                          #  spd, fr, hp, dmg, bspd,rspd
+        (images.mushroom,   gameobjects.Modifier(10, 0.0,0.0,  4,   1,  0.0, 0.0)),
+        (images.star,       gameobjects.Modifier(4,  1.0,0.5, 10,   3,  0.0, 1.0)),
+        (images.coin,       gameobjects.Modifier(999,0.0,0.0,  0,   0,  0.0, 0.0)),
+    ]
 
     def remove_shape(space, shape, shape2=None):
         """ Removes shapes and bodies from the space. """
@@ -77,7 +84,7 @@ def main_game(score=[]):
 
 
     def drop_flag(tank,flag):
-        """ Drops the flag at the tanks current posistion. """
+        """ Drops the flag at the tanks current position. """
         gameobjects.Flag(tank.body.position.x, tank.body.position.y)
         tank.flag = None
         flag.is_on_tank = False
@@ -387,8 +394,11 @@ def main_game(score=[]):
         #  Try to grab the flag and then if it has the flag update the posistion of the tank
         for tank in tanks_list:
             tank.try_grab_flag(flag)
+            tank.try_grab_powerup(powerups_list)
             tank.post_update()
-            
+            for i in tank.modifiers.keys():
+                tank.modifiers[i].tick()
+                
             if tank.has_won():
                 sounds.win_sound.play() # play win sound
                 game_objects_list.remove(tank.flag)
@@ -458,6 +468,13 @@ def main_game(score=[]):
         foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
         background = create_background(screen, current_map, images)
     
+        if random.randint(1, 100) > 98:
+            x = random.randint(0, current_map.width-1)
+            y = random.randint(0, current_map.height-1)
+            
+            powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
+            powerups_list[(x+0.5, y+0.5)] = powerup
+        
         #  Update ai
         def bots():
             for ai in ai_list:
@@ -475,6 +492,8 @@ def main_game(score=[]):
                 tank.update_screen(screen, UI_WIDTH)
             for bullet in bullet_list:
                 bullet.update_screen(screen, UI_WIDTH)
+            for obj in powerups_list.values():
+                obj.update_screen(screen, UI_WIDTH)
         
         #  Call functions to update the display
         update_ui()
