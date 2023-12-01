@@ -21,7 +21,7 @@ def map_options(screen, ma, pos):
 
 def welcome_screen(ui_width):
     """ The main function for the welcome screen. """
-    global multiplayer,current_map, screen
+    global multiplayer, current_map, screen
     not_playing = True
     current_map = None
     while not_playing:

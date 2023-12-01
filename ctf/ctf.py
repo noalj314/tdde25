@@ -9,6 +9,7 @@ import sys
 import random
 
 
+
 # ----- Initialisation ----- #
 
 # -- Initialise the display
@@ -32,6 +33,7 @@ import gameobjects
 import maps
 import sounds
 import menu
+import game_over
 
  # -- Constants
 multiplayer = None
@@ -311,18 +313,13 @@ def main_game(score=[]):
 # ----- Main Loop -----#
 
 # -- Control whether the game run
-    running = True
-    skip_update = 0
-    skip_update_2 = 0
-    variabel = 0
-    score_screen_background = pygame.Surface(screen.get_size())
-    score_screen_background.fill(pygame.Color("black"))
+    
     
     pressed = {}
     #def orthogonal(u, d, l, r):
-        
-    while running:
-        # -- Handle the events
+    
+    def event_handler():
+        """ Handles all events. """
         for event in pygame.event.get():
             #  Check if we receive a QUIT event (for instance, if the user press the
             #  close button of the wiendow) or if the user press the escape key.
@@ -370,137 +367,133 @@ def main_game(score=[]):
                         tanks_list[1].stop_turning()
                     elif (event.key == K_d):
                         tanks_list[1].stop_turning()
+
+
+    def tank_won(tank):
+        """ Checks if a tank has won the game. """
+        sounds.win_sound.play() # play win sound
+        game_objects_list.remove(tank.flag)
+        flag = create_flag()
+        tank.flag = None
+        tank.score += 1
+        
+        score_list = game_over.game_over(current_map, tanks_list, UI_WIDTH)
+        main_game(score_list)
+                        
+        pygame.display.flip()
+
+        for item in tanks_list:
+            reset_tank(item)
+        for i in range(len(tanks_list)):
+            print(f"Player {i+1}: {tanks_list[i].score}")
+        for i in range(0, len(current_map.start_positions)):
+            if not multiplayer and i > 0:
+                ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+            elif multiplayer and i > 1:
+                ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
     
-        # -- Update physics
-        if skip_update == 0:
-            #  Loop over all the game objects and update their speed in function of their
-            #  acceleration.
-            for obj in game_objects_list:
-                obj.update()
-            for obj in tanks_list:
-                obj.update()
-            for obj in bullet_list:
-                obj.update()
-            skip_update = 2
-        else:
-            skip_update -= 1
-    
-        #  Check collisions and update the objects position
-        space.step(1 / gameobjects.FRAMERATE)
-    
-        #  Update object that depends on an other object position (for instance a flag)
+    def update_objects():
+        """ Updates the objects on the screen. """
+     #  Update object that depends on an other object position (for instance a flag)
         for obj in game_objects_list:
             obj.post_update()
-        #  Try to grab the flag and then if it has the flag update the posistion of the tank
+        for obj in game_objects_list:
+            obj.update_screen(screen, UI_WIDTH)
         for tank in tanks_list:
-            tank.try_grab_flag(flag)
-            tank.try_grab_powerup(powerups_list)
-            tank.post_update()
-            for i in tank.modifiers.keys():
-                tank.modifiers[i].tick()
-                
-            if tank.has_won():
-                sounds.win_sound.play() # play win sound
-                game_objects_list.remove(tank.flag)
-                flag = create_flag()
-                tank.flag = None
-                tank.score += 1
-                title_score = True
-                screen = pygame.display.set_mode((1024,1024))
-                while title_score: #Initalise score screen
-                    screen.fill(pygame.Color("black"))
-    
-                    screen.blit(score_screen_background, (0, 0))
-                    
-                    menu_rect = pygame.Rect(350, 200, 250,50)
-                    start_rect = pygame.Rect(350, 300, 250,50)
-                    
-                    pygame.draw.rect(screen, pygame.Color("blue"), menu_rect, border_radius=10)
-                    text_surface = my_font.render('Main Menu', False, (0, 0, 0))
-                    
-                    pygame.draw.rect(screen, pygame.Color("red"), start_rect, border_radius=10)
-                    text_surface2 = my_font.render('Continue', False, (0, 0, 0))
-                    
-                    screen.blit(text_surface, (menu_rect.x, menu_rect.y))
-                    screen.blit(text_surface2, (start_rect.x, start_rect.y))
-                    
-                    y = 100
-                    for i in range(len(tanks_list)):
-                        menu.text_creator(screen, menu.menu_font, f"Player {i+1}: {tanks_list[i].score}", pygame.Color("white"),(100,100+y))
-                        y += 100
-                        
-                    for event in pygame.event.get():
-                        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                            title_score = False
-                            running = False
-                        if event.type == pygame.MOUSEBUTTONDOWN:
-                            mouse_pos = event.pos
-                            map_y = 650
-                            
-                            menu_rect_py = pygame.Rect(350, 200, 250,50)
-                            start_rect_py = pygame.Rect(350, 300, 250,50)
-                            if menu_rect_py.collidepoint(mouse_pos):
-                                title_score = False
-                                running = False
-                                menu.welcome_screen(UI_WIDTH)
-                                main_game([0,0,0,0,0,0])
-                                
-                            if start_rect_py.collidepoint(mouse_pos):
-                                title_score = False
-                                running = False
-                                screen = pygame.display.set_mode(current_map.rect().size+pymunk.Vec2d(UI_WIDTH*2, 0))
-                                score_list = []
-                                for t in tanks_list:
-                                    score_list.append(t.score)
-                                main_game(score_list)
-                                
-                    pygame.display.flip()
-    
-                for item in tanks_list:
-                    reset_tank(item)
-                for i in range(len(tanks_list)):
-                    print(f"Player {i+1}: {tanks_list[i].score}")
-                for i in range(0, len(current_map.start_positions)):
-                    if not multiplayer and i > 0:
-                        ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                    elif multiplayer and i > 1:
-                        ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-    
-        foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
-        background = create_background(screen, current_map, images)
-    
+            tank.update_screen(screen, UI_WIDTH)
+        for bullet in bullet_list:
+            bullet.update_screen(screen, UI_WIDTH)
+        for obj in powerups_list.values():
+            obj.update_screen(screen, UI_WIDTH)
+
+
+    def bots():
+        """ Updates the ai. """
+        for ai in ai_list:
+            ai.decide(background)
+
+
+    def powerup():
+        """Spawns powerups"""
         if random.randint(1, 100) > 98:
             x = random.randint(0, current_map.width-1)
             y = random.randint(0, current_map.height-1)
             
             powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
             powerups_list[(x+0.5, y+0.5)] = powerup
+
+    def update_physics():
+        """ Updates the physics of the game."""
+        for obj in game_objects_list:
+            obj.update()
+        for obj in tanks_list:
+            obj.update()
+        for obj in bullet_list:
+            obj.update()
         
-        #  Update ai
-        def bots():
-            for ai in ai_list:
-                ai.decide(background)
+        
+
+    def update_tanks():
+        """ Updates the tanks. """
+        for tank in tanks_list:
+            #  Try to grab the flag and then if it has the flag update the posistion of the tank
+            tank.try_grab_flag(flag)
+            tank.try_grab_powerup(powerups_list)
+            tank.post_update()
+            for i in tank.modifiers.keys():
+                tank.modifiers[i].tick()
+            if tank.has_won():
+                tank_won(tank)
     
+    
+    running = True
+    skip_update = 0
+    skip_update_2 = 0
+    variabel = 0
+    score_screen_background = pygame.Surface(screen.get_size())
+    score_screen_background.fill(pygame.Color("black"))
+
+    while running:
+
+         # -- Update physics
+        if skip_update == 0:
+            update_physics()
+            skip_update = 2
+        else:
+            skip_update -= 1
+
+        # -- Handle the events
+        event_handler()
+
+        # -- Update physics
+       
+    
+        #  Check collisions and update the objects position
+        space.step(1 / gameobjects.FRAMERATE)
+    
+        # -- Update the tanks
+        update_tanks()
+    
+        #foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
+        background = create_background(screen, current_map, images)
+
+        #   Creates powerups
+        powerup() 
+
         # -- Update Display
         screen.blit(background, (UI_WIDTH, 0))
         # screen.blit(foreground, (0, 0))
         
         #  Update the display of the game objects on the screen
-        def update_objects():
-            for obj in game_objects_list:
-                obj.update_screen(screen, UI_WIDTH)
-            for tank in tanks_list:
-                tank.update_screen(screen, UI_WIDTH)
-            for bullet in bullet_list:
-                bullet.update_screen(screen, UI_WIDTH)
-            for obj in powerups_list.values():
-                obj.update_screen(screen, UI_WIDTH)
-        
         #  Call functions to update the display
         update_ui()
+        
+        #  Update the display of the game objects on the screen
         update_objects()
+        
+        #update ai
         bots()
-
+        
         #   Redisplay the entire screen (see double buffer technique)
         pygame.display.flip()
     
