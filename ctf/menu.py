@@ -18,7 +18,6 @@ def text_creator(screen, font, text, colour, pos):
 def map_options(screen, ma, pos):
     text_creator(screen, menu_font, ma, pygame.Color('white'), pos)
 
-
 def welcome_screen(ui_width):
     """ The main function for the welcome screen. """
     global multiplayer, current_map, screen
@@ -57,11 +56,9 @@ def welcome_screen(ui_width):
         map_x_positions = [85,85, 300, 300]
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                running = False
                 not_playing = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
-                map_y = 650
                 if multiplayer_rect.collidepoint(mouse_pos):
                     multiplayer = True
                 if singleplayer_rect.collidepoint(mouse_pos):

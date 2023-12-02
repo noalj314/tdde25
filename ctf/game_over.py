@@ -11,50 +11,33 @@ multiplayer = None
 
 def game_over(current_map, tanks_list, UI_WIDTH):
     screen = pygame.display.set_mode((1024,1024))
-    my_font = pygame.font.SysFont('Comic Sans MS', 20)
+    score_font = pygame.font.SysFont('Arcade Classic', 50)
     title_score = True
     
     while title_score: #Initalise score screen
         screen.fill([255, 255, 255])    
         screen.blit(images.score,(0,0))
-
         
-        menu_rect = pygame.Rect(350, 200, 250,50)
-        start_rect = pygame.Rect(350, 300, 250,50)
-        
-        pygame.draw.rect(screen, pygame.Color("blue"), menu_rect, border_radius=10)
-        text_surface = my_font.render('Main Menu', False, (0, 0, 0))
-        
-        pygame.draw.rect(screen, pygame.Color("red"), start_rect, border_radius=10)
-        text_surface2 = my_font.render('Continue', False, (0, 0, 0))
-        
-        screen.blit(text_surface, (menu_rect.x, menu_rect.y))
-        screen.blit(text_surface2, (start_rect.x, start_rect.y))
-        
-
-        
-        y = 100
+        y = 263
         for i in range(len(tanks_list)):
-            menu.text_creator(screen, menu.menu_font, f"Player {i+1}: {tanks_list[i].score}", pygame.Color("white"),(100,100+y))
-            y += 100
+            menu.text_creator(screen, score_font, f"Player {i+1}", pygame.Color("black"),(280,100+y))
+            menu.text_creator(screen, score_font, f"                                                      {tanks_list[i].score}", pygame.Color("green"),(280,100+y))
+            y += 65
             
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 title_score = False
-                running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
-                map_y = 650
                 
-                menu_rect_py = pygame.Rect(350, 200, 250,50)
-                start_rect_py = pygame.Rect(350, 300, 250,50)
-                if menu_rect_py.collidepoint(mouse_pos):
+                menu_rect = pygame.Rect(80, 880, 350,80)
+                start_rect = pygame.Rect(600, 880, 350,80)
+                if menu_rect.collidepoint(mouse_pos):
                     title_score = False
-                    running = False
                     menu.welcome_screen(UI_WIDTH)
                     return [0,0,0,0,0,0]
                     
-                if start_rect_py.collidepoint(mouse_pos):
+                if start_rect.collidepoint(mouse_pos):
                     title_score = False
                     running = False
                     screen = pygame.display.set_mode(current_map.rect().size+pymunk.Vec2d(UI_WIDTH*2, 0))
