@@ -465,8 +465,6 @@ def main_game(score=[]):
         # -- Handle the events
         event_handler()
 
-        # -- Update physics
-       
     
         #  Check collisions and update the objects position
         space.step(1 / gameobjects.FRAMERATE)
