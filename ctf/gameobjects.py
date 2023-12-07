@@ -305,15 +305,21 @@ class Tank(GamePhysicsObject):
         def has_won(self):
             """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
             return self.flag is not None and (self.start_position - self.body.position).length < 0.2
+        
+        def recoil(self):
+            """ Call this function to make the tank recoil in the direction it was hit """
+            self.body.velocity -= pymunk.Vec2d((2 * math.cos(math.radians(self.screen_orientation()-90))), 2 * (math.sin(math.radians(self.screen_orientation()+90))))
+
 
         def shoot(self, space, bullet_list):
-            """ Call this function to shoot a missile (current implementation does nothing ! you need to implement it yourself) """
+            """ Call this function to shoot a missile from the tank."""
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
                 sounds.tankshot_sound.play()
                 bullet = Bullet(self, images.bullet, space)
                 bullet.shape.collision_type = collision_types["bullet"]
                 bullet_list.append(bullet)
+                self.recoil()
             else:
                 return None
 
