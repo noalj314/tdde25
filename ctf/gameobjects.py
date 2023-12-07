@@ -170,32 +170,23 @@ class Tank(GamePhysicsObject):
 
         def accelerate(self, accelerate_mod=1):
             """ Call this function to make the tank move forward. """
-            sounds.movement_sound.stop()
-            sounds.engine_sound.stop()
-            sounds.movement_sound.play()
-            sounds.engine_sound.set_volume(0.2)
-            sounds.engine_sound.play()
+        
+            sounds.play_sound(sounds.movement_sound) # Play the sound of the tank moving
             self.acceleration = 2 * accelerate_mod
+
 
         def stop_moving(self):
             """ Call this function to make the tank stop moving. """
-            sounds.movement_sound.stop()
-            sounds.engine_sound.stop()
-
-            sounds.engine_sound.set_volume(0.2)
-            sounds.engine_sound.play()
-
+            sounds.stop_sound(sounds.movement_sound)
             self.acceleration = 0
             self.body.velocity = pymunk.Vec2d.zero()
 
+
         def decelerate(self, decelerate_mod=1):
             """ Call this function to make the tank move backward. """
-            sounds.movement_sound.stop()
-            sounds.engine_sound.stop()
-            sounds.movement_sound.play()
-            sounds.engine_sound.set_volume(0.2)
-            sounds.engine_sound.play()
-
+        
+            sounds.play_sound(sounds.movement_sound) # Play the sound of the tank moving
+            
             self.acceleration = -2 * decelerate_mod
 
         def turn_left(self):
@@ -262,6 +253,7 @@ class Tank(GamePhysicsObject):
             self.body.angular_velocity += self.rotation * self.ACCELERATION
             self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
             self.respawn += 1
+            self.shoot_last += 1
 
         def post_update(self):
             """ If the tank carries the flag, then update the positon of the flag """
@@ -272,7 +264,7 @@ class Tank(GamePhysicsObject):
             # Else ensure that the tank has its normal max speed
             else:
                 self.max_speed = Tank.NORMAL_MAX_SPEED * self.speed_mod
-            self.shoot_last += 1
+
 
         def try_grab_flag(self, flag):
             """ Call this function to try to grab the flag, if the flag is not on other tank
@@ -287,7 +279,7 @@ class Tank(GamePhysicsObject):
                     self.flag = flag
                     flag.is_on_tank = True
                     self.max_speed = Tank.FLAG_MAX_SPEED * self.speed_mod
-                    sounds.flag_capture_sound.play()
+                    sounds.play_sound(sounds.flag_capture_sound) # Play the sound of the flag being captured
                     
         def try_grab_powerup(self, powerups):
             """ Call this function to try to grab the flag, if the flag is not on other tank
@@ -297,7 +289,7 @@ class Tank(GamePhysicsObject):
                 powerup = powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
                 self.modifiers[powerup.sprite] = copy.deepcopy(powerup.modifier)
                 del powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
-                sounds.flag_capture_sound.play()
+                sounds.play_sound(sounds.flag_capture_sound) # Play the sound of the flag being captured
             except KeyError:
                 pass
             
@@ -306,20 +298,15 @@ class Tank(GamePhysicsObject):
             """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
             return self.flag is not None and (self.start_position - self.body.position).length < 0.2
         
-        def recoil(self):
-            """ Call this function to make the tank recoil in the direction it was hit """
-            self.body.velocity -= pymunk.Vec2d((2 * math.cos(math.radians(self.screen_orientation()-90))), 2 * (math.sin(math.radians(self.screen_orientation()+90))))
-
 
         def shoot(self, space, bullet_list):
             """ Call this function to shoot a missile from the tank."""
             if Tank.ability_to_shoot(self):
                 self.shoot_last = 0
-                sounds.tankshot_sound.play()
+                sounds.play_sound(sounds.tankshot_sound) # Play the sound of the tank shooting
                 bullet = Bullet(self, images.bullet, space)
                 bullet.shape.collision_type = collision_types["bullet"]
                 bullet_list.append(bullet)
-                self.recoil()
             else:
                 return None
 

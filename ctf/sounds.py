@@ -26,3 +26,14 @@ tankshot_sound = load_sound('tankshot.wav')  # Sound of a tank shooting
 win_sound = load_sound('win.wav')  # Sound of a tank shooting
 
 engine_sound = load_sound('engineidle.mp3')
+
+sounds_list = [explosion_sound, flag_capture_sound, movement_sound, tankshot_sound, win_sound, engine_sound]
+
+def play_sound(sound, volume=0.1):
+    """ Play a sound. """
+    sound.set_volume(volume)
+    sound.play()
+
+def stop_sound(sound):
+    """ Stop a sound. """
+    sound.stop()

@@ -42,7 +42,7 @@ multiplayer = None
 # ----- Main Game -----#
 
 def main_game(score=[]):
-    
+    sounds.play_sound(sounds.engine_sound, 0.02)
     # -- Initialise the physics
     space = pymunk.Space()
     space.gravity = (0.0, 0.0)
@@ -119,7 +119,7 @@ def main_game(score=[]):
         """
         bullet = arb.shapes[0].parent
         remove_shape(space,arb.shapes[0])
-        sounds.explosion_sound.play()
+        sounds.play_sound(sounds.explosion_sound)
         try:
             remove_from_list(bullet_list,arb.shapes[0].parent)
         except ValueError:
@@ -132,7 +132,7 @@ def main_game(score=[]):
         Triggered when bullet and wall collide, removing the bullet from the space and bullet_list. 
         """
         remove_shape(space, arb.shapes[0])
-        sounds.explosion_sound.play()
+        sounds.play_sound(sounds.explosion_sound)
         try:
             remove_from_list(bullet_list, arb.shapes[0].parent)
         except ValueError:
@@ -147,7 +147,7 @@ def main_game(score=[]):
         tank = arb.shapes[1].parent
         bullet = arb.shapes[0].parent
         remove_shape(space, arb.shapes[0])
-        sounds.explosion_sound.play()
+        sounds.play_sound(sounds.explosion_sound)
         try:
             remove_from_list(bullet_list, arb.shapes[0].parent)
         except ValueError:
@@ -162,7 +162,7 @@ def main_game(score=[]):
         Triggered when bullet and another bullet collide, removing the bullets from the space and bullet_list.
         """
         remove_shape(space, arb.shapes[0],arb.shapes[1])
-        sounds.explosion_sound.play()
+        sounds.play_sound(sounds.explosion_sound)
         try:
             remove_from_list(bullet_list, arb.shapes[0].parent)
             remove_from_list(bullet_list, arb.shapes[1].parent)
@@ -376,7 +376,9 @@ def main_game(score=[]):
         flag = create_flag()
         tank.flag = None
         tank.score += 1
-        
+
+        for sound in sounds.sounds_list:
+            sounds.stop_sound(sound)        
         score_list = game_over.game_over(current_map, tanks_list, UI_WIDTH)
         main_game(score_list)
                         
@@ -454,7 +456,7 @@ def main_game(score=[]):
     score_screen_background.fill(pygame.Color("black"))
 
     while running:
-
+        # -- Main loop
          # -- Update physics
         if skip_update == 0:
             update_physics()
@@ -464,7 +466,6 @@ def main_game(score=[]):
 
         # -- Handle the events
         event_handler()
-
     
         #  Check collisions and update the objects position
         space.step(1 / gameobjects.FRAMERATE)
@@ -499,4 +500,5 @@ def main_game(score=[]):
         clock.tick(gameobjects.FRAMERATE)
     
 menu.welcome_screen(UI_WIDTH)
+
 main_game([0,0,0,0,0,0])
