@@ -39,6 +39,8 @@ star = load_image('star.png')   # Image of star
 
 coin = load_image('coin.png')       # Image of coin
 
+flower = load_image('flower.png')   # Image of flower
+
 bullet = load_image('bullet.png')
 bullet = pygame.transform.scale(bullet, (10, 10))
 bullet = pygame.transform.rotate(bullet, -90)

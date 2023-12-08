@@ -220,16 +220,16 @@ class Tank(GamePhysicsObject):
             hp = 0 # Add
             fr = 1 # Mult
             damage_taken = self.max_hp - self.hp
-            for i in self.modifiers.values():
-                if i.time <= 0:
-                    del i
+            for i in self.modifiers.keys():
+                if self.modifiers[i].time <= 0:
+                    del self.modifiers[i]
                     break
-                spd += i.max_speed
-                dmg += i.damage
-                bspd += i.bullet_speed
-                rspd += i.rotation_speed
-                hp += i.max_hp
-                fr += i.fire_rate
+                spd += self.modifiers[i].max_speed
+                dmg += self.modifiers[i].damage
+                bspd += self.modifiers[i].bullet_speed
+                rspd += self.modifiers[i].rotation_speed
+                hp += self.modifiers[i].max_hp
+                fr += self.modifiers[i].fire_rate
             
             self.max_speed = Tank.NORMAL_MAX_SPEED * spd
             self.damage = Tank.WEAPON_DAMAGE + dmg
@@ -288,6 +288,7 @@ class Tank(GamePhysicsObject):
             try:
                 powerup = powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
                 self.modifiers[powerup.sprite] = copy.deepcopy(powerup.modifier)
+                self.modifiers[powerup.sprite].orig = powerup.modifier
                 del powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
                 sounds.play_sound(sounds.flag_capture_sound) # Play the sound of the flag being captured
             except KeyError:
@@ -404,6 +405,7 @@ class Modifier():
         self.damage = dmg
         self.bullet_speed = bulletspd
         self.rotation_speed = rotationspd
+        self.orig = self # To refer to the base modifier's time
         
     def tick(self):
         self.time -= 1/FRAMERATE

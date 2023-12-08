@@ -7,7 +7,7 @@ from pygame.color import *
 import pymunk
 import sys
 import random
-
+import math
 
 
 # ----- Initialisation ----- #
@@ -18,6 +18,7 @@ screen = pygame.display.set_mode((800,600))
 ui_screen = pygame.display.set_mode((800,600))
 UI_WIDTH = 200
 control_mode = "turn"
+score_show = "continous" # continous / screen
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
@@ -61,9 +62,10 @@ def main_game(score=[]):
     ai_list = []
     powerups_list = {} # The powerups on screen
     powerup_defines = [                          #  spd, fr, hp, dmg, bspd,rspd
-        (images.mushroom,   gameobjects.Modifier(10, 0.0,0.0,  4,   1,  0.0, 0.0)),
-        (images.star,       gameobjects.Modifier(4,  1.0,0.5, 10,   3,  0.0, 1.0)),
+        (images.mushroom,   gameobjects.Modifier(15, 0.0,0.0,  4,   1,  0.0, 0.0)),
+        (images.star,       gameobjects.Modifier(5,  1.0,0.5, 10,   3,  0.0, 1.0)),
         (images.coin,       gameobjects.Modifier(999,0.0,0.0,  0,   0,  0.0, 0.0)),
+        (images.flower,     gameobjects.Modifier(10 ,0.0,3.0,  0,   0,  0.0, 0.0)),
     ]
 
     def remove_shape(space, shape, shape2=None):
@@ -285,6 +287,13 @@ def main_game(score=[]):
             menu.text_creator(screen, my_font, 'Speed ' + str(tanks_list[i].max_speed), 0x000000, (place.x + 10, place.y + 90))
             menu.text_creator(screen, my_font, 'Bullet Speed ' + str(tanks_list[i].bullet_speed), 0x000000, (place.x + 10, place.y + 110))
 
+            # Modifiers are shown as icons, and go like clock
+            for j in range(len(tanks_list[i].modifiers.keys())):
+                rect = pygame.Rect(place.x + j*images.TILE_SIZE, place.y + 130, images.TILE_SIZE, images.TILE_SIZE)
+                print(list(tanks_list[i].modifiers.values())[j].time, list(tanks_list[i].modifiers.values())[j].orig.time)
+                screen.blit(list(tanks_list[i].modifiers.keys())[j], (rect.x, rect.y))
+                pygame.draw.arc(screen, 0x000000, rect, 0, 2 * math.pi * (1 - list(tanks_list[i].modifiers.values())[j].time / list(tanks_list[i].modifiers.values())[j].orig.time), 8)
+                
 
     def object_functions():
         """ Calls functions to initialise the objects. """
@@ -313,10 +322,6 @@ def main_game(score=[]):
 # ----- Main Loop -----#
 
 # -- Control whether the game run
-    
-    
-    pressed = {}
-    #def orthogonal(u, d, l, r):
     
     def event_handler():
         """ Handles all events. """
@@ -376,7 +381,14 @@ def main_game(score=[]):
         flag = create_flag()
         tank.flag = None
         tank.score += 1
-
+        """if score_show == "continous":
+            reset_tank(tank)
+            for i in range(0, len(current_map.start_positions)):
+                if not multiplayer and i > 0:
+                    ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+                elif multiplayer and i > 1:
+                    ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
+        elif score_show == "screen":"""
         for sound in sounds.sounds_list:
             sounds.stop_sound(sound)        
         score_list = game_over.game_over(current_map, tanks_list, UI_WIDTH)
@@ -421,8 +433,9 @@ def main_game(score=[]):
             x = random.randint(0, current_map.width-1)
             y = random.randint(0, current_map.height-1)
             
-            powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
-            powerups_list[(x+0.5, y+0.5)] = powerup
+            if current_map.boxAt(x, y) == 0:
+                powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
+                powerups_list[(x+0.5, y+0.5)] = powerup
 
     def update_physics():
         """ Updates the physics of the game."""
