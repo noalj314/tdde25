@@ -17,8 +17,6 @@ pygame.init()
 screen = pygame.display.set_mode((800,600))
 ui_screen = pygame.display.set_mode((800,600))
 UI_WIDTH = 200
-control_mode = "turn"
-score_show = "continous" # continous / screen
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
@@ -304,26 +302,12 @@ def main_game(score=[]):
     object_functions()
     flag = create_flag()
 
-    #  def reset_game():
-    #     """A function that handles the reset ability of the game"""
-    #     current_map = menu.current_map
-    #     game_objects_list.clear()
-    #     bullet_list.clear() 
-    #     ai_list.clear()
-    #     hit_points.clear()
-    #     flag = create_flag()
-        
-    #     print(tanks_list)
-    #     create_boxes()
-    #     for tank in tanks_list:
-    #         reset_tank(tank)
-
 
 # ----- Main Loop -----#
 
 # -- Control whether the game run
     
-    def event_handler():
+    def event_handler(running):
         """ Handles all events. """
         for event in pygame.event.get():
             #  Check if we receive a QUIT event (for instance, if the user press the
@@ -372,6 +356,7 @@ def main_game(score=[]):
                         tanks_list[1].stop_turning()
                     elif (event.key == K_d):
                         tanks_list[1].stop_turning()
+        return running
 
 
     def tank_won(tank):
@@ -381,14 +366,6 @@ def main_game(score=[]):
         flag = create_flag()
         tank.flag = None
         tank.score += 1
-        """if score_show == "continous":
-            reset_tank(tank)
-            for i in range(0, len(current_map.start_positions)):
-                if not multiplayer and i > 0:
-                    ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                elif multiplayer and i > 1:
-                    ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-        elif score_show == "screen":"""
         for sound in sounds.sounds_list:
             sounds.stop_sound(sound)        
         score_list = game_over.game_over(current_map, tanks_list, UI_WIDTH)
@@ -478,7 +455,7 @@ def main_game(score=[]):
             skip_update -= 1
 
         # -- Handle the events
-        event_handler()
+        running = event_handler(running)
     
         #  Check collisions and update the objects position
         space.step(1 / gameobjects.FRAMERATE)
