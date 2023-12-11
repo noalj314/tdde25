@@ -243,10 +243,10 @@ def main_game(score=[]):
             tank.shape.collision_type = gameobjects.collision_types["tank"]
         # Add the base for the tank to the game_objects_list
             game_objects_list.append(base)
-        # Create ai instances for each tank except the first
         
             tank.score = score[i]
         
+        # Create ai instances for each tank except the first
             if multiplayer and i > 1:
                 bot = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
                 ai_list.append(bot)
