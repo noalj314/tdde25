@@ -287,9 +287,12 @@ def main_game(score=[]):
 
             # Modifiers are shown as icons, and go like clock
             for j in range(len(tanks_list[i].modifiers.keys())):
-                rect = pygame.Rect(place.x + j*images.TILE_SIZE, place.y + 130, images.TILE_SIZE, images.TILE_SIZE)
-                screen.blit(list(tanks_list[i].modifiers.keys())[j], (rect.x, rect.y))
-                pygame.draw.arc(screen, 0x000000, rect, 0, 2 * math.pi * (1 - list(tanks_list[i].modifiers.values())[j].time / list(tanks_list[i].modifiers.values())[j].orig.time), 8)
+                try:
+                    rect = pygame.Rect(place.x + j*images.TILE_SIZE, place.y + 130, images.TILE_SIZE, images.TILE_SIZE)
+                    screen.blit(list(tanks_list[i].modifiers.keys())[j], (rect.x, rect.y))
+                    pygame.draw.arc(screen, 0x000000, rect, 0, 2 * math.pi * (1 - list(tanks_list[i].modifiers.values())[j].time / list(tanks_list[i].modifiers.values())[j].orig.time), 8)
+                except TypeError:
+                    pass # AI modifier shall not be shown
                 
 
     def object_functions():
@@ -439,8 +442,6 @@ def main_game(score=[]):
     
     running = True
     skip_update = 0
-    skip_update_2 = 0
-    variabel = 0
     score_screen_background = pygame.Surface(screen.get_size())
     score_screen_background.fill(pygame.Color("black"))
 

@@ -162,7 +162,6 @@ class Tank(GamePhysicsObject):
             self.fire_rate = Tank.FIRE_RATE
             self.hp = Tank.HIT_POINTS
             self.max_hp = Tank.HIT_POINTS
-            self.speed_mod = 1
             self.damage = Tank.WEAPON_DAMAGE
             self.bullet_speed = Tank.BULLET_SPEED
             self.rotation_speed = Tank.ROTATION_SPEED
@@ -261,10 +260,6 @@ class Tank(GamePhysicsObject):
                 self.flag.x = self.body.position[0]
                 self.flag.y = self.body.position[1]
                 self.flag.orientation = -math.degrees(self.body.angle)
-            # Else ensure that the tank has its normal max speed
-            else:
-                self.max_speed = Tank.NORMAL_MAX_SPEED * self.speed_mod
-
 
         def try_grab_flag(self, flag):
             """ Call this function to try to grab the flag, if the flag is not on other tank
@@ -278,7 +273,6 @@ class Tank(GamePhysicsObject):
                     # Grab the flag !
                     self.flag = flag
                     flag.is_on_tank = True
-                    self.max_speed = Tank.FLAG_MAX_SPEED * self.speed_mod
                     sounds.play_sound(sounds.flag_capture_sound) # Play the sound of the flag being captured
                     
         def try_grab_powerup(self, powerups):

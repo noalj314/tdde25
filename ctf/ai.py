@@ -50,12 +50,7 @@ class Ai:
         self.move_cycle = self.move_cycle_gen()
         self.metal_boxes = False
         
-        self.tank.speed_mod = 2
-        #self.tank.fire_rate = gameobjects.Tank.FIRE_RATE * 0.5
-        #self.tank.hp = int(gameobjects.Tank.HIT_POINTS * 1.5)
-        #self.tank.max_hp = int(gameobjects.Tank.HIT_POINTS * 1.5)
-        #self.tank.damage = int(gameobjects.Tank.WEAPON_DAMAGE * 2)
-        self.tank.bullet_speed = gameobjects.Tank.BULLET_SPEED * 1.8
+        self.tank.modifiers["ai"] = gameobjects.Modifier(999, 1.0, 0.0, 0, 0, 0.8, 0.0)
 
 
     def update_grid_pos(self):
