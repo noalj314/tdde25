@@ -9,7 +9,6 @@ import pymunk
 import pygame
 from pymunk import Vec2d
 import gameobjects
-from numpy import transpose
 
 # 
 MIN_ANGLE_DIF = math.radians(3)   # 3 degrees, a bit more than we can turn each tick
@@ -73,7 +72,7 @@ class Ai:
         while True:
             every2 = 0 # To counteract delay in movement
             self.update_grid_pos()
-            self.path = self.find_shortest_path(transpose(self.currentmap.boxes), self.grid_pos, self.get_target_tile())
+            self.path = self.find_shortest_path(self.grid_pos, self.get_target_tile())
 
             if not self.path: # If tank does not find path to flag
                 self.metal_boxes = True # then it will check paths containing metal boxes
@@ -116,13 +115,13 @@ class Ai:
             yield
 
 
-    def decide(self, background):
+    def decide(self):
         """ Called every tick, tank shoots and moves. """
-        self.maybe_shoot(background)
+        self.maybe_shoot()
         next(self.move_cycle)
     
 
-    def maybe_shoot(self, background):
+    def maybe_shoot(self):
         """ 
         Makes a raycast query in front of the tank. If another tank
         or a wooden box is found, then we shoot.
@@ -146,7 +145,7 @@ class Ai:
         pass  # To be implemented
 
 
-    def find_shortest_path(self, grid, start, end):
+    def find_shortest_path(self, start, end):
         """ 
         A simple Breadth First Search using integer coordinates as our nodes.
         Edges are calculated as we go, using an external function.

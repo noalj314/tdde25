@@ -17,8 +17,6 @@ pygame.init()
 screen = pygame.display.set_mode((800,600))
 ui_screen = pygame.display.set_mode((800,600))
 UI_WIDTH = 200
-control_mode = "turn"
-score_show = "continous" # continous / screen
 
 # -- Initialise the clock
 clock = pygame.time.Clock()
@@ -185,7 +183,7 @@ def main_game(score=[]):
     b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
     b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
     b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
-    b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall)
+    b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall) # For hitting map border
     b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
     b_b_handler = collision_handler(space, 4, 4, collision_bullet_bullet)
     
@@ -290,7 +288,6 @@ def main_game(score=[]):
             # Modifiers are shown as icons, and go like clock
             for j in range(len(tanks_list[i].modifiers.keys())):
                 rect = pygame.Rect(place.x + j*images.TILE_SIZE, place.y + 130, images.TILE_SIZE, images.TILE_SIZE)
-                print(list(tanks_list[i].modifiers.values())[j].time, list(tanks_list[i].modifiers.values())[j].orig.time)
                 screen.blit(list(tanks_list[i].modifiers.keys())[j], (rect.x, rect.y))
                 pygame.draw.arc(screen, 0x000000, rect, 0, 2 * math.pi * (1 - list(tanks_list[i].modifiers.values())[j].time / list(tanks_list[i].modifiers.values())[j].orig.time), 8)
                 
@@ -304,26 +301,12 @@ def main_game(score=[]):
     object_functions()
     flag = create_flag()
 
-    #  def reset_game():
-    #     """A function that handles the reset ability of the game"""
-    #     current_map = menu.current_map
-    #     game_objects_list.clear()
-    #     bullet_list.clear() 
-    #     ai_list.clear()
-    #     hit_points.clear()
-    #     flag = create_flag()
-        
-    #     print(tanks_list)
-    #     create_boxes()
-    #     for tank in tanks_list:
-    #         reset_tank(tank)
-
 
 # ----- Main Loop -----#
 
 # -- Control whether the game run
     
-    def event_handler():
+    def event_handler(running):
         """ Handles all events. """
         for event in pygame.event.get():
             #  Check if we receive a QUIT event (for instance, if the user press the
@@ -372,6 +355,7 @@ def main_game(score=[]):
                         tanks_list[1].stop_turning()
                     elif (event.key == K_d):
                         tanks_list[1].stop_turning()
+        return running
 
 
     def tank_won(tank):
@@ -381,14 +365,6 @@ def main_game(score=[]):
         flag = create_flag()
         tank.flag = None
         tank.score += 1
-        """if score_show == "continous":
-            reset_tank(tank)
-            for i in range(0, len(current_map.start_positions)):
-                if not multiplayer and i > 0:
-                    ai_list[i-1] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-                elif multiplayer and i > 1:
-                    ai_list[i-2] = ai.Ai(tanks_list[i], game_objects_list, tanks_list, bullet_list, space, current_map)
-        elif score_show == "screen":"""
         for sound in sounds.sounds_list:
             sounds.stop_sound(sound)        
         score_list = game_over.game_over(current_map, tanks_list, UI_WIDTH)
@@ -424,7 +400,7 @@ def main_game(score=[]):
     def bots():
         """ Updates the ai. """
         for ai in ai_list:
-            ai.decide(background)
+            ai.decide()
 
 
     def powerup():
@@ -437,6 +413,7 @@ def main_game(score=[]):
                 powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
                 powerups_list[(x+0.5, y+0.5)] = powerup
 
+
     def update_physics():
         """ Updates the physics of the game."""
         for obj in game_objects_list:
@@ -447,7 +424,6 @@ def main_game(score=[]):
             obj.update()
         
         
-
     def update_tanks():
         """ Updates the tanks. """
         for tank in tanks_list:
@@ -478,7 +454,7 @@ def main_game(score=[]):
             skip_update -= 1
 
         # -- Handle the events
-        event_handler()
+        running = event_handler(running)
     
         #  Check collisions and update the objects position
         space.step(1 / gameobjects.FRAMERATE)
@@ -486,7 +462,6 @@ def main_game(score=[]):
         # -- Update the tanks
         update_tanks()
     
-        #foreground = pygame.Surface(screen.get_size(), pygame.SRCALPHA, 32)
         background = create_background(screen, current_map, images)
 
         #   Creates powerups
@@ -494,7 +469,6 @@ def main_game(score=[]):
 
         # -- Update Display
         screen.blit(background, (UI_WIDTH, 0))
-        # screen.blit(foreground, (0, 0))
         
         #  Update the display of the game objects on the screen
         #  Call functions to update the display
