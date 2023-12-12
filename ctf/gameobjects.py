@@ -14,12 +14,13 @@ FRAMERATE = 50
 DEBUG = False  # Change this to set it in debug mode
 
 collision_types = {
-    "wall": 1,      #Walls stop tanks and destroy bullets
-    "wood": 2,      #Wooden boxes are destroyed upon being shot
-    "metal": 3,     #Metal boxes are pushed
-    "bullet": 4,    #Bullets are destroyed upon hitting something
-    "tank": 5,      #Tanks are destroyed when hit by bullets
+    "wall": 1,      # Walls stop tanks and destroy bullets
+    "wood": 2,      # Wooden boxes are destroyed upon being shot
+    "metal": 3,     # Metal boxes are pushed
+    "bullet": 4,    # Bullets are destroyed upon hitting something
+    "tank": 5,      # Tanks are destroyed when hit by bullets
 }
+
 
 def physics_to_display(x):
     """ This function is used to convert coordinates in the physic engine into the display coordinates """
@@ -104,10 +105,6 @@ class GamePhysicsObject(GameObject):
         self.shape = pymunk.Poly(self.body, points)  # Create a polygon shape using the corner of the rectangle
         self.shape.parent = self
 
-        # Set some value for friction and elasticity, which defines interraction in case of a colision
-        # self.shape.friction = 0.5
-        # self.shape.elasticity = 0.1
-
         # Add the object to the physic engine
         space.add(self.body, self.shape)
 
@@ -134,182 +131,172 @@ def clamp(min_max, value):
     """ Convenient helper function to bound a value to a specific interval. """
     return min(max(-min_max, value), min_max)
 
+
 class Tank(GamePhysicsObject):
-        """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
+    """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
+    # Constant values for the tank, acessed like: Tank.ACCELERATION
+    # You can add more constants here if needed later
+    ACCELERATION = 0.4
+    NORMAL_MAX_SPEED = 2.0
+    FLAG_MAX_SPEED = NORMAL_MAX_SPEED * 0.5
+    FIRE_RATE = 2
+    HIT_POINTS = 4
+    WEAPON_DAMAGE = 1
+    BULLET_SPEED = 5
+    ROTATION_SPEED = 3
 
-        # Constant values for the tank, acessed like: Tank.ACCELERATION
-        # You can add more constants here if needed later
-        ACCELERATION = 0.4
-        NORMAL_MAX_SPEED = 2.0
-        FLAG_MAX_SPEED = NORMAL_MAX_SPEED * 0.5
-        FIRE_RATE = 2
-        HIT_POINTS = 4
-        WEAPON_DAMAGE = 1
-        BULLET_SPEED = 5
-        ROTATION_SPEED = 3
+    def __init__(self, x, y, orientation, sprite, space):
+        super().__init__(x, y, orientation, sprite, space, True)
+        # Define variable used to apply motion to the tanks
+        self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
+        self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
+        self.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
+        self.respawn = 0  # respawn protection
+        self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
+        self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
+        self.start_position = pymunk.Vec2d(x, y)  # Define the start position, which is also the position where the tank has to return with the flag
+        self.score = 0
+        self.fire_rate = Tank.FIRE_RATE
+        self.hp = Tank.HIT_POINTS
+        self.max_hp = Tank.HIT_POINTS
+        self.speed_mod = 1
+        self.damage = Tank.WEAPON_DAMAGE
+        self.bullet_speed = Tank.BULLET_SPEED
+        self.rotation_speed = Tank.ROTATION_SPEED
+        self.modifiers = {}
 
-        def __init__(self, x, y, orientation, sprite, space):
-            super().__init__(x, y, orientation, sprite, space, True)
-            # Define variable used to apply motion to the tanks
-            self.acceleration = 0  # 1 forward, 0 for stand still, -1 for backwards
-            self.rotation = 0  # 1 clockwise, 0 for no rotation, -1 counter clockwise
-            self.shoot_last = 50  # set last shoot to 50 since the tank has not shoot
-            self.respawn = 0 # respawn protection
-            self.flag = None  # This variable is used to access the flag object, if the current tank is carrying the flag
-            self.max_speed = Tank.NORMAL_MAX_SPEED  # Impose a maximum speed to the tank
-            self.start_position = pymunk.Vec2d(x,y)  # Define the start position, which is also the position where the tank has to return with the flag
-            self.score = 0
-            self.fire_rate = Tank.FIRE_RATE
-            self.hp = Tank.HIT_POINTS
-            self.max_hp = Tank.HIT_POINTS
-            self.speed_mod = 1
-            self.damage = Tank.WEAPON_DAMAGE
-            self.bullet_speed = Tank.BULLET_SPEED
-            self.rotation_speed = Tank.ROTATION_SPEED
-            self.modifiers = {}
+    def accelerate(self, accelerate_mod=1):
+        """ Call this function to make the tank move forward. """
+        sounds.play_sound(sounds.movement_sound)  # Play the sound of the tank moving
+        self.acceleration = 2 * accelerate_mod
 
-        def accelerate(self, accelerate_mod=1):
-            """ Call this function to make the tank move forward. """
-        
-            sounds.play_sound(sounds.movement_sound) # Play the sound of the tank moving
-            self.acceleration = 2 * accelerate_mod
+    def stop_moving(self):
+        """ Call this function to make the tank stop moving. """
+        sounds.stop_sound(sounds.movement_sound)
+        self.acceleration = 0
+        self.body.velocity = pymunk.Vec2d.zero()
 
+    def decelerate(self, decelerate_mod=1):
+        """ Call this function to make the tank move backward. """
+        sounds.play_sound(sounds.movement_sound)  # Play the sound of the tank moving
+        self.acceleration = -2 * decelerate_mod
 
-        def stop_moving(self):
-            """ Call this function to make the tank stop moving. """
-            sounds.stop_sound(sounds.movement_sound)
-            self.acceleration = 0
-            self.body.velocity = pymunk.Vec2d.zero()
+    def turn_left(self):
+        """ Makes the tank turn left (counter clock-wise). """
+        self.rotation = -self.rotation_speed
 
+    def turn_right(self):
+        """ Makes the tank turn right (clock-wise). """
+        self.rotation = self.rotation_speed
 
-        def decelerate(self, decelerate_mod=1):
-            """ Call this function to make the tank move backward. """
-        
-            sounds.play_sound(sounds.movement_sound) # Play the sound of the tank moving
-            
-            self.acceleration = -2 * decelerate_mod
+    def stop_turning(self):
+        """ Call this function to make the tank stop turning. """
+        self.rotation = 0
+        self.body.angular_velocity = 0
 
-        def turn_left(self):
-            """ Makes the tank turn left (counter clock-wise). """
-            self.rotation = -self.rotation_speed
+    def ability_to_shoot(self):
+        """ Call this function to check whether a tank can shoot or not """
+        return self.shoot_last >= FRAMERATE/self.fire_rate
 
-        def turn_right(self):
-            """ Makes the tank turn right (clock-wise). """
-            self.rotation = self.rotation_speed
+    def ability_to_die(self):
+        """ Call this function to check whether a tank can die or not """
+        return self.respawn >= 100  # two seconds
 
-        def stop_turning(self):
-            """ Call this function to make the tank stop turning. """
-            self.rotation = 0
-            self.body.angular_velocity = 0
+    def update(self):
+        """ A function to update the objects coordinates. Gets called at every tick of the game. """
+        spd = 1  # Mult
+        dmg = 0  # Add
+        bspd = 1  # Mult
+        rspd = 1  # Mult
+        hp = 0  # Add
+        fr = 1  # Mult
+        damage_taken = self.max_hp - self.hp
+        for i in self.modifiers.keys():
+            if self.modifiers[i].time <= 0:
+                del self.modifiers[i]
+                break
+            spd += self.modifiers[i].max_speed
+            dmg += self.modifiers[i].damage
+            bspd += self.modifiers[i].bullet_speed
+            rspd += self.modifiers[i].rotation_speed
+            hp += self.modifiers[i].max_hp
+            fr += self.modifiers[i].fire_rate
 
-        def ability_to_shoot(self):
-            """ Call this function to check whether a tank can shoot or not """
-            return self.shoot_last >= FRAMERATE/self.fire_rate
+        self.max_speed = Tank.NORMAL_MAX_SPEED * spd
+        self.damage = Tank.WEAPON_DAMAGE + dmg
+        self.bullet_speed = Tank.BULLET_SPEED * bspd
+        self.rotation_speed = Tank.ROTATION_SPEED * rspd
+        self.max_hp = Tank.HIT_POINTS + hp
+        self.fire_rate = Tank.FIRE_RATE * fr
+        self.hp = self.max_hp - damage_taken
 
-        def ability_to_die(self):
-            """ Call this function to check whether a tank can die or not """
-            return self.respawn >= 100 # two seconds
+        # Creates a vector in the direction we want accelerate / decelerate
+        acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
+        # Applies the vector to our velocity
+        self.body.velocity += acceleration_vector
 
-        def update(self):
-            """ A function to update the objects coordinates. Gets called at every tick of the game. """
-            
-            spd = 1 # Mult
-            dmg = 0 # Add
-            bspd = 1 # Mult
-            rspd = 1 # Mult
-            hp = 0 # Add
-            fr = 1 # Mult
-            damage_taken = self.max_hp - self.hp
-            for i in self.modifiers.keys():
-                if self.modifiers[i].time <= 0:
-                    del self.modifiers[i]
-                    break
-                spd += self.modifiers[i].max_speed
-                dmg += self.modifiers[i].damage
-                bspd += self.modifiers[i].bullet_speed
-                rspd += self.modifiers[i].rotation_speed
-                hp += self.modifiers[i].max_hp
-                fr += self.modifiers[i].fire_rate
-            
-            self.max_speed = Tank.NORMAL_MAX_SPEED * spd
-            self.damage = Tank.WEAPON_DAMAGE + dmg
-            self.bullet_speed = Tank.BULLET_SPEED * bspd
-            self.rotation_speed = Tank.ROTATION_SPEED * rspd
-            self.max_hp = Tank.HIT_POINTS + hp
-            self.fire_rate = Tank.FIRE_RATE * fr
-            
-            self.hp = self.max_hp - damage_taken
+        # Makes sure that we don't exceed our speed limit
+        velocity = clamp(self.max_speed, self.body.velocity.length)
+        self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
 
-            # Creates a vector in the direction we want accelerate / decelerate
-            acceleration_vector = pymunk.Vec2d(0, self.ACCELERATION * self.acceleration).rotated(self.body.angle)
-            # Applies the vector to our velocity
-            self.body.velocity += acceleration_vector
+        # Updates the rotation
+        self.body.angular_velocity += self.rotation * self.ACCELERATION
+        self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
+        self.respawn += 1
+        self.shoot_last += 1
 
-            # Makes sure that we don't exceed our speed limit
-            velocity = clamp(self.max_speed, self.body.velocity.length)
-            self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
+    def post_update(self):
+        """ If the tank carries the flag, then update the positon of the flag """
+        if (self.flag is not None):
+            self.flag.x = self.body.position[0]
+            self.flag.y = self.body.position[1]
+            self.flag.orientation = -math.degrees(self.body.angle)
+        # Else ensure that the tank has its normal max speed
+        else:
+            self.max_speed = Tank.NORMAL_MAX_SPEED * self.speed_mod
 
-            # Updates the rotation
-            self.body.angular_velocity += self.rotation * self.ACCELERATION
-            self.body.angular_velocity = clamp(self.max_speed, self.body.angular_velocity)
-            self.respawn += 1
-            self.shoot_last += 1
+    def try_grab_flag(self, flag):
+        """ Call this function to try to grab the flag, if the flag is not on other tank
+            and it is close to the current tank, then the current tank will grab the flag."""
+        # Check that the flag is not on other tank
+        if not flag.is_on_tank:
+            # Check if the tank is close to the flag
+            flag_pos = pymunk.Vec2d(flag.x, flag.y)
+            if (flag_pos - self.body.position).length < 0.5:
+                # Grab the flag !
+                self.flag = flag
+                flag.is_on_tank = True
+                self.max_speed = Tank.FLAG_MAX_SPEED * self.speed_mod
+                sounds.play_sound(sounds.flag_capture_sound)  # Play the sound of the flag being captured
 
-        def post_update(self):
-            """ If the tank carries the flag, then update the positon of the flag """
-            if (self.flag is not None):
-                self.flag.x = self.body.position[0]
-                self.flag.y = self.body.position[1]
-                self.flag.orientation = -math.degrees(self.body.angle)
-            # Else ensure that the tank has its normal max speed
-            else:
-                self.max_speed = Tank.NORMAL_MAX_SPEED * self.speed_mod
+    def try_grab_powerup(self, powerups):
+        """ Call this function to try to grab the flag, if the flag is not on other tank
+            and it is close to the current tank, then the current tank will grab the flag.
+        """
+        try:
+            powerup = powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
+            self.modifiers[powerup.sprite] = copy.deepcopy(powerup.modifier)
+            self.modifiers[powerup.sprite].orig = powerup.modifier
+            del powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
+            sounds.play_sound(sounds.flag_capture_sound)  # Play the sound of the flag being captured
+        except KeyError:
+            pass
 
+    def has_won(self):
+        """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
+        return self.flag is not None and (self.start_position - self.body.position).length < 0.2
 
-        def try_grab_flag(self, flag):
-            """ Call this function to try to grab the flag, if the flag is not on other tank
-                and it is close to the current tank, then the current tank will grab the flag.
-            """
-            # Check that the flag is not on other tank
-            if not flag.is_on_tank:
-                # Check if the tank is close to the flag
-                flag_pos = pymunk.Vec2d(flag.x, flag.y)
-                if (flag_pos - self.body.position).length < 0.5:
-                    # Grab the flag !
-                    self.flag = flag
-                    flag.is_on_tank = True
-                    self.max_speed = Tank.FLAG_MAX_SPEED * self.speed_mod
-                    sounds.play_sound(sounds.flag_capture_sound) # Play the sound of the flag being captured
-                    
-        def try_grab_powerup(self, powerups):
-            """ Call this function to try to grab the flag, if the flag is not on other tank
-                and it is close to the current tank, then the current tank will grab the flag.
-            """
-            try:
-                powerup = powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
-                self.modifiers[powerup.sprite] = copy.deepcopy(powerup.modifier)
-                self.modifiers[powerup.sprite].orig = powerup.modifier
-                del powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
-                sounds.play_sound(sounds.flag_capture_sound) # Play the sound of the flag being captured
-            except KeyError:
-                pass
-            
-            
-        def has_won(self):
-            """ Check if the current tank has won (if it is has the flag and it is close to its start position). """
-            return self.flag is not None and (self.start_position - self.body.position).length < 0.2
-        
+    def shoot(self, space, bullet_list):
+        """ Call this function to shoot a missile from the tank."""
+        if Tank.ability_to_shoot(self):
+            self.shoot_last = 0
+            sounds.play_sound(sounds.tankshot_sound)  # Play the sound of the tank shooting
+            bullet = Bullet(self, images.bullet, space)
+            bullet.shape.collision_type = collision_types["bullet"]
+            bullet_list.append(bullet)
+        else:
+            return None
 
-        def shoot(self, space, bullet_list):
-            """ Call this function to shoot a missile from the tank."""
-            if Tank.ability_to_shoot(self):
-                self.shoot_last = 0
-                sounds.play_sound(sounds.tankshot_sound) # Play the sound of the tank shooting
-                bullet = Bullet(self, images.bullet, space)
-                bullet.shape.collision_type = collision_types["bullet"]
-                bullet_list.append(bullet)
-            else:
-                return None
 
 class Bullet(GamePhysicsObject):
     """ Extends GamePhysicsObject and handles aspects which are specific to our tanks. """
@@ -338,9 +325,11 @@ class Bullet(GamePhysicsObject):
         velocity = clamp(self.max_speed, self.body.velocity.length)
         self.body.velocity = pymunk.Vec2d(velocity, 0).rotated(self.body.velocity.angle)
 
+
 class Box(GamePhysicsObject):
     """ This class extends the GamePhysicsObject to handle box objects. """
     HIT_POINTS = 2
+
     def __init__(self, x, y, sprite, movable, space, destructable):
         """ It takes as arguments the coordinate of the starting position of the box (x,y) and the box model (boxmodel). """
         super().__init__(x, y, 0, sprite, space, movable)
@@ -382,6 +371,7 @@ class GameVisibleObject(GameObject):
         """ Overwrite from GameObject """
         return self.orientation
 
+
 class PowerUp(GameVisibleObject):
     """ This class extends GameVisibleObject for representing powerups."""
 
@@ -389,12 +379,14 @@ class PowerUp(GameVisibleObject):
         self.modifier = defines[1]
         super().__init__(x, y, defines[0])
 
+
 class Flag(GameVisibleObject):
     """ This class extends GameVisibleObject for representing flags."""
 
     def __init__(self, x, y):
         self.is_on_tank = False
         super().__init__(x, y, images.flag)
+
 
 class Modifier():
     def __init__(self, time, speed, firerate, maxhp, dmg, bulletspd, rotationspd):
@@ -405,9 +397,7 @@ class Modifier():
         self.damage = dmg
         self.bullet_speed = bulletspd
         self.rotation_speed = rotationspd
-        self.orig = self # To refer to the base modifier's time
-        
+        self.orig = self  # To refer to the base modifier's time
+
     def tick(self):
         self.time -= 1/FRAMERATE
-        
-        
