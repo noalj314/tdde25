@@ -13,14 +13,17 @@ menu_font = pygame.font.Font(None, int(float(50) * scale_fctr))
 
 
 def text_creator(screen, font, text, colour, pos):
+    """Creates text and blits it on the screen"""
     text_create = font.render(text, True, colour)
     screen.blit(text_create, pos)
 
 
 def map_options(screen, ma, pos):
+    """Create text for the maps"""
     text_creator(screen, menu_font, ma, pygame.Color('white'), pos)
 
 def scale_rect(x, y, width, height, scale_factor):
+    """Scaling a rectangle"""
     return pygame.Rect(x*scale_factor, y*scale_factor, width*scale_factor, height*scale_factor)
 
 def welcome_screen(ui_width):
@@ -33,14 +36,18 @@ def welcome_screen(ui_width):
         
         screen.blit(pygame.transform.scale(images.menu, (1024*scale_fctr, 1024*scale_fctr)),(0,0))
         
+        #Create multiplayer and singleplayer rect 
         singleplayer_rect = scale_rect(630, 650, 250,50, scale_fctr)
         multiplayer_rect = scale_rect(630, 760, 250,50, scale_fctr)
         
+    
         pygame.draw.rect(screen, pygame.Color("blue"), singleplayer_rect, border_radius=10)
         pygame.draw.rect(screen, pygame.Color("red"), multiplayer_rect, border_radius=10)
         text_creator(screen, menu_font,"Singleplayer", pygame.Color("white"),(650*scale_fctr,660*scale_fctr))
         text_creator(screen, menu_font,"Multiplayer", pygame.Color("white"),(650*scale_fctr,770*scale_fctr))
         
+
+        #Create all the map text and thumbnailsSß
         map_options(screen, maps.maps_list[0], (185*scale_fctr, (650 + 40)* scale_fctr)) #creates text
         thumbnail = maps.maps_list_no_str[0].gen_thumbnail((100*scale_fctr,100*scale_fctr)) # generates thumbnail
         screen.blit(thumbnail, ((85)*scale_fctr, scale_fctr*(650)))

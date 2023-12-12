@@ -11,6 +11,7 @@ scale_fctr = 1 if '--big' in sys.argv else 0.5
 
 
 def game_over(current_map, tanks_list, UI_WIDTH):
+    """A screen that gets called when a player or ai wins"""
     screen = pygame.display.set_mode((1024*scale_fctr,1024*scale_fctr))
     score_font = pygame.font.SysFont('Arcade Classic', int(50*scale_fctr))
     title_score = True

@@ -41,6 +41,7 @@ multiplayer = None
 # ----- Main Game -----#
 
 def main_game(score=[]):
+    """The main game"""
     sounds.play_sound(sounds.engine_sound, 0.02)
     # -- Initialise the physics
     space = pymunk.Space()
