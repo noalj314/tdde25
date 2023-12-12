@@ -44,8 +44,9 @@ class Ai:
         self.max_y = currentmap.height - 1
         self.move_cycle = self.move_cycle_gen()
         self.metal_boxes = False
-        self.tank.speed_mod = 2
-        self.tank.bullet_speed = gameobjects.Tank.BULLET_SPEED * 1.8
+        
+        # Makes the ai-controlled tanks have a bonus to their movement and bullet speed
+        self.tank.modifiers["ai"] = gameobjects.Modifier(999, 1.0, 0.0, 0, 0, 0.8, 0.0)
 
     def update_grid_pos(self):
         """ This should only be called in the beginning, or at the end of a move_cycle. """
@@ -79,6 +80,7 @@ class Ai:
                 self.tank.turn_right()
                 yield
 
+            # When find right angle
             while abs(dif_angle) >= MIN_ANGLE_DIF:
                 dif_angle = periodic_difference_of_angles(self.tank.body.angle, target_angle)
                 yield
@@ -98,12 +100,12 @@ class Ai:
             yield
 
 
-    def decide(self, background):
+    def decide(self):
         """ Called every tick, tank shoots and moves. """
         self.maybe_shoot()
         next(self.move_cycle)
-
-    def maybe_shoot(self, background):
+    
+    def maybe_shoot(self):
         """ Makes a raycast query in front of the tank. If another tank
         or a wooden box is found, then we shoot."""
         angle = self.tank.body.angle + math.pi/2
@@ -116,12 +118,13 @@ class Ai:
 
         res = self.space.segment_query_first((x_start, y_start), (x_end, y_end), 0.3, pymunk.ShapeFilter())
         try:
+            # Shoots if sees another tank or a wooden box
             if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape, 'parent'):            
                 if (isinstance(res.shape.parent, gameobjects.Tank) or (isinstance(res.shape.parent, gameobjects.Box) and res.shape.parent.sprite == images.woodbox)) and res.shape.parent != self.tank:
                     self.tank.shoot(self.space, self.bullet_list)
         except AttributeError:
             print("Error")
-
+            
     def find_shortest_path(self, grid, start, end):
         """ A simple Breadth First Search using integer coordinates as our nodes.
         Edges are calculated as we go, using an external function."""
@@ -139,6 +142,8 @@ class Ai:
             if node in visited:
                 continue
             visited.add(node)
+    
+            # Adds the path to all neighbouring tiles
             for neighbour in self.get_tile_neighbors(node):
                 new_pos = Vec2d(neighbour.x, neighbour.y)
                 queue.append((new_pos, path + deque([new_pos])))
