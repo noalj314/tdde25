@@ -172,7 +172,7 @@ def main_game(score=[]):
     b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
     b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
     b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
-    b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall)
+    b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall) # For hitting map border
     b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
     b_b_handler = collision_handler(space, 4, 4, collision_bullet_bullet)
 
@@ -377,6 +377,7 @@ def main_game(score=[]):
             if current_map.boxAt(x, y) == 0:
                 powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
                 powerups_list[(x+0.5, y+0.5)] = powerup
+
 
     def update_physics():
         """ Updates the physics of the game. """

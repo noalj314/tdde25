@@ -401,3 +401,4 @@ class Modifier():
 
     def tick(self):
         self.time -= 1/FRAMERATE
+        self.time -= 1/FRAMERATE
