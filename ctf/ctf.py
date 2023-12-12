@@ -41,7 +41,7 @@ multiplayer = None
 
 
 def main_game(score=[]):
-    """The main game"""
+    """ The main game. """
     sounds.play_sound(sounds.engine_sound, 0.02)
     # -- Initialise the physics
     space = pymunk.Space()
@@ -60,11 +60,11 @@ def main_game(score=[]):
     bullet_list = []
     ai_list = []
     powerups_list = {}  # The powerups on screen
-    powerup_defines = [                          # spd, fr, hp, dmg, bspd,rspd
-        (images.mushroom,   gameobjects.Modifier(15, 0.0, 0.0, 4, 1, 0.0, 0.0)),
-        (images.star,       gameobjects.Modifier(5, 1.0, 0.5, 10, 3, 0.0, 1.0)),
-        (images.coin,       gameobjects.Modifier(999, 0.0, 0.0, 0, 0, 0.0, 0.0)),
-        (images.flower,     gameobjects.Modifier(10, 0.0, 3.0, 0, 0, 0.0, 0.0)),
+    powerup_defines = [                       #time, spd,  fr,hp,dmg,bspd,rspd
+        (images.mushroom,   gameobjects.Modifier(15, 0.0, 0.0, 4,  1, 0.0, 0.0)),
+        (images.star,       gameobjects.Modifier(5,  1.0, 0.5,10,  3, 0.0, 1.0)),
+        (images.coin,       gameobjects.Modifier(999,0.0, 0.0, 0,  0, 0.0, 0.0)),
+        (images.flower,     gameobjects.Modifier(10, 0.0, 3.0, 0,  0, 0.0, 0.0)),
     ]
 
     def remove_shape(space, shape, shape2=None):
@@ -247,11 +247,13 @@ def main_game(score=[]):
     def update_ui():
         """ Updates the visual menu with different stats such as score, fire rate... """
         for i in range(len(tanks_list)):
+            # Draw everyone's stats menu
             place = pygame.Rect((screen.get_size()[0]-UI_WIDTH)*(i % 2), screen.get_size()[1]/int(len(tanks_list)/2)*(i//2), UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
             colour = images.colours[i]
 
             pygame.draw.rect(screen, colour, place)
-
+            
+            # Draw HP/max HP as filled/empty boxes
             text_surface = my_font.render('HP:', False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 10))
             for j in range(tanks_list[i].max_hp):
@@ -261,6 +263,7 @@ def main_game(score=[]):
                 rect = pygame.Rect(place.x + (j+4)*11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x00ff00, rect)
 
+            # Write all stats of the tank below HP
             menu.text_creator(screen, my_font, 'Score ' + str(tanks_list[i].score), 0x000000, (place.x + 10, place.y + 30))
             menu.text_creator(screen, my_font, 'Dmg ' + str(tanks_list[i].damage), 0x000000, (place.x + 10, place.y + 50))
             menu.text_creator(screen, my_font, 'Fire Rate ' + str(tanks_list[i].fire_rate) + "/s", 0x000000, (place.x + 10, place.y + 70))
