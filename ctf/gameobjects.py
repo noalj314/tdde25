@@ -61,7 +61,7 @@ class GameObject:
         # corner of the sprite
         offset = pymunk.Vec2d(*sprite.get_size()) / 2.
         p = p - offset
-        screen.blit(sprite, p+pymunk.Vec2d(ui_width, 0))  # Copy the sprite on the screen
+        screen.blit(sprite, p + pymunk.Vec2d(ui_width, 0))  # Copy the sprite on the screen
 
 
 class GamePhysicsObject(GameObject):
@@ -196,7 +196,7 @@ class Tank(GamePhysicsObject):
 
     def ability_to_shoot(self):
         """ Call this function to check whether a tank can shoot or not """
-        return self.shoot_last >= FRAMERATE/self.fire_rate
+        return self.shoot_last >= FRAMERATE / self.fire_rate
 
     def ability_to_die(self):
         """ Call this function to check whether a tank can die or not """
@@ -274,10 +274,10 @@ class Tank(GamePhysicsObject):
             and it is close to the current tank, then the current tank will grab the flag.
         """
         try:
-            powerup = powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
+            powerup = powerups[(int(self.body.position[0]) + 0.5, int(self.body.position[1]) + 0.5)]
             self.modifiers[powerup.sprite] = copy.deepcopy(powerup.modifier)
             self.modifiers[powerup.sprite].orig = powerup.modifier
-            del powerups[(int(self.body.position[0])+0.5, int(self.body.position[1])+0.5)]
+            del powerups[(int(self.body.position[0]) + 0.5, int(self.body.position[1]) + 0.5)]
             sounds.play_sound(sounds.flag_capture_sound)  # Play the sound of the flag being captured
         except KeyError:
             pass
@@ -304,13 +304,13 @@ class Bullet(GamePhysicsObject):
 
     def __init__(self, tank, sprite, space):
 
-        x_start = tank.body.position.x + (0.4 * math.cos(math.radians(tank.screen_orientation()-90)))
-        y_start = tank.body.position.y + (0.4 * math.sin(math.radians(tank.screen_orientation()+90)))
+        x_start = tank.body.position.x + (0.4 * math.cos(math.radians(tank.screen_orientation() - 90)))
+        y_start = tank.body.position.y + (0.4 * math.sin(math.radians(tank.screen_orientation() + 90)))
 
         super().__init__(x_start, y_start, tank.screen_orientation(), sprite, space, True)
         # Define variable used to apply motion to the bullet
         self.speed = 5
-        self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation()-90))), self.speed * (math.sin(math.radians(tank.screen_orientation()+90))))
+        self.body.velocity = pymunk.Vec2d((self.speed * math.cos(math.radians(tank.screen_orientation() - 90))), self.speed * (math.sin(math.radians(tank.screen_orientation() + 90))))
         self.space = space
         self.max_speed = tank.bullet_speed    # Impose a maximum speed to the bullet
         self.damage = tank.damage
@@ -400,5 +400,5 @@ class Modifier():
         self.orig = self  # To refer to the base modifier's time
 
     def tick(self):
-        self.time -= 1/FRAMERATE
-        self.time -= 1/FRAMERATE
+        self.time -= 1 / FRAMERATE
+        self.time -= 1 / FRAMERATE

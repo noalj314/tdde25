@@ -44,7 +44,7 @@ class Ai:
         self.max_y = currentmap.height - 1
         self.move_cycle = self.move_cycle_gen()
         self.metal_boxes = False
-        
+
         # Makes the ai-controlled tanks have a bonus to their movement and bullet speed
         self.tank.modifiers["ai"] = gameobjects.Modifier(999, 1.0, 0.0, 0, 0, 0.8, 0.0)
 
@@ -99,16 +99,15 @@ class Ai:
             self.tank.stop_moving()
             yield
 
-
     def decide(self):
         """ Called every tick, tank shoots and moves. """
         self.maybe_shoot()
         next(self.move_cycle)
-    
+
     def maybe_shoot(self):
         """ Makes a raycast query in front of the tank. If another tank
         or a wooden box is found, then we shoot."""
-        angle = self.tank.body.angle + math.pi/2
+        angle = self.tank.body.angle + math.pi / 2
 
         x_start = self.tank.body.position.x + (0.4 * math.cos(angle))
         y_start = self.tank.body.position.y + (0.4 * math.sin(angle))
@@ -119,12 +118,12 @@ class Ai:
         res = self.space.segment_query_first((x_start, y_start), (x_end, y_end), 0.3, pymunk.ShapeFilter())
         try:
             # Shoots if sees another tank or a wooden box
-            if type(res) == pymunk.SegmentQueryInfo and hasattr(res.shape, 'parent'):            
+            if isinstance(res, pymunk.SegmentQueryInfo) and hasattr(res.shape, 'parent'):
                 if (isinstance(res.shape.parent, gameobjects.Tank) or (isinstance(res.shape.parent, gameobjects.Box) and res.shape.parent.sprite == images.woodbox)) and res.shape.parent != self.tank:
                     self.tank.shoot(self.space, self.bullet_list)
         except AttributeError:
             print("Error")
-            
+
     def find_shortest_path(self, grid, start, end):
         """ A simple Breadth First Search using integer coordinates as our nodes.
         Edges are calculated as we go, using an external function."""
@@ -135,14 +134,14 @@ class Ai:
             if node == end:
                 path.popleft()
                 if end == Vec2d(int(self.flag.x), int(self.flag.y)):
-                    path.append(Vec2d(self.flag.x-0.5, self.flag.y-0.5))
+                    path.append(Vec2d(self.flag.x - 0.5, self.flag.y - 0.5))
                 elif end == Vec2d(int(self.tank.start_position.x), int(self.tank.start_position.y)):
-                    path.append(Vec2d(self.tank.start_position.x-0.5, self.tank.start_position.y-0.5))
+                    path.append(Vec2d(self.tank.start_position.x - 0.5, self.tank.start_position.y - 0.5))
                 return path
             if node in visited:
                 continue
             visited.add(node)
-    
+
             # Adds the path to all neighbouring tiles
             for neighbour in self.get_tile_neighbors(node):
                 new_pos = Vec2d(neighbour.x, neighbour.y)
@@ -188,7 +187,6 @@ class Ai:
 
     def filter_tile_neighbors(self, coord):
         """ Used to filter the tile to check if it is a neighbor of the tank. """
-        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and (self.currentmap.boxAt(coord.x, coord.y) == 0 or
-                self.currentmap.boxAt(coord.x, coord.y) == 2 or (self.currentmap.boxAt(coord.x, coord.y) == 3 and self.metal_boxes)):
+        if 0 <= coord.x <= self.max_x and 0 <= coord.y <= self.max_y and (self.currentmap.boxAt(coord.x, coord.y) == 0 or self.currentmap.boxAt(coord.x, coord.y) == 2 or (self.currentmap.boxAt(coord.x, coord.y) == 3 and self.metal_boxes)):
             return True
         return False

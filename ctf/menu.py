@@ -8,7 +8,7 @@ from pygame.color import *
 multiplayer = None
 
 scale_fctr = 1 if '--big' in sys.argv else 0.5
-screen = pygame.display.set_mode((1024*scale_fctr, 1024*scale_fctr))
+screen = pygame.display.set_mode((1024 * scale_fctr, 1024 * scale_fctr))
 menu_font = pygame.font.Font(None, int(float(50) * scale_fctr))
 
 
@@ -25,7 +25,7 @@ def map_options(screen, ma, pos):
 
 def scale_rect(x, y, width, height, scale_factor):
     """Scaling a rectangle"""
-    return pygame.Rect(x*scale_factor, y*scale_factor, width*scale_factor, height*scale_factor)
+    return pygame.Rect(x * scale_factor, y * scale_factor, width * scale_factor, height * scale_factor)
 
 
 def welcome_screen(ui_width):
@@ -35,7 +35,7 @@ def welcome_screen(ui_width):
     current_map = None
     while not_playing:
         screen.fill([255, 255, 255])
-        screen.blit(pygame.transform.scale(images.menu, (1024*scale_fctr, 1024*scale_fctr)), (0, 0))
+        screen.blit(pygame.transform.scale(images.menu, (1024 * scale_fctr, 1024 * scale_fctr)), (0, 0))
         # Create multiplayer and singleplayer rectangles
         singleplayer_rect = scale_rect(630, 650, 250, 50, scale_fctr)
         multiplayer_rect = scale_rect(630, 760, 250, 50, scale_fctr)
@@ -47,13 +47,13 @@ def welcome_screen(ui_width):
         # Create all the map text and thumbnails
         map_options(screen, maps.maps_list[0], (185 * scale_fctr, (650 + 40) * scale_fctr))  # creates text
         thumbnail = maps.maps_list_no_str[0].gen_thumbnail((100 * scale_fctr, 100 * scale_fctr))  # generates thumbnail
-        screen.blit(thumbnail, ((85)*scale_fctr, scale_fctr * (650)))
+        screen.blit(thumbnail, ((85) * scale_fctr, scale_fctr * (650)))
 
         map_options(screen, maps.maps_list[1], (185 * scale_fctr, scale_fctr * (760 + 40)))  # creates text
-        thumbnail = maps.maps_list_no_str[1].gen_thumbnail((100*scale_fctr, 100 * scale_fctr))  # generates thumbnail
+        thumbnail = maps.maps_list_no_str[1].gen_thumbnail((100 * scale_fctr, 100 * scale_fctr))  # generates thumbnail
         screen.blit(thumbnail, (85 * scale_fctr, 760 * scale_fctr))
 
-        map_options(screen, maps.maps_list[2], (380 * scale_fctr,  scale_fctr * (650 + 40)))  # creates text
+        map_options(screen, maps.maps_list[2], (380 * scale_fctr, scale_fctr * (650 + 40)))  # creates text
         thumbnail = maps.maps_list_no_str[2].gen_thumbnail((100 * scale_fctr, 100 * scale_fctr))  # generates thumbnail
         screen.blit(thumbnail, (280 * scale_fctr, 650 * scale_fctr))
 
@@ -84,4 +84,4 @@ def welcome_screen(ui_width):
 
         pygame.display.flip()
 
-    screen = pygame.display.set_mode(current_map.rect().size + pymunk.Vec2d(ui_width*2, 0))
+    screen = pygame.display.set_mode(current_map.rect().size + pymunk.Vec2d(ui_width * 2, 0))

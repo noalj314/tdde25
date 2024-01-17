@@ -44,7 +44,7 @@ class Map:
         elif boxtype == 3:
             return pygame.Color("white")
 
-            
+
 map0 = Map(9, 9,
            [[0, 1, 0, 0, 0, 0, 0, 1, 0],
             [0, 1, 0, 2, 0, 2, 0, 1, 0],

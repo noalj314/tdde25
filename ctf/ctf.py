@@ -1,6 +1,3 @@
-""" Main file for the game.
-"""
-# -- Import relevant libraries
 import pygame
 from pygame.locals import *
 from pygame.color import *
@@ -60,11 +57,11 @@ def main_game(score=[]):
     bullet_list = []
     ai_list = []
     powerups_list = {}  # The powerups on screen
-    powerup_defines = [                       #time, spd,  fr,hp,dmg,bspd,rspd
-        (images.mushroom,   gameobjects.Modifier(15, 0.0, 0.0, 4,  1, 0.0, 0.0)),
-        (images.star,       gameobjects.Modifier(5,  1.0, 0.5,10,  3, 0.0, 1.0)),
-        (images.coin,       gameobjects.Modifier(999,0.0, 0.0, 0,  0, 0.0, 0.0)),
-        (images.flower,     gameobjects.Modifier(10, 0.0, 3.0, 0,  0, 0.0, 0.0)),
+    powerup_defines = [
+        (images.mushroom, gameobjects.Modifier(15, 0.0, 0.0, 4, 1, 0.0, 0.0)),
+        (images.star, gameobjects.Modifier(5, 1.0, 0.5, 10, 3, 0.0, 1.0)),
+        (images.coin, gameobjects.Modifier(999, 0.0, 0.0, 0, 0, 0.0, 0.0)),
+        (images.flower, gameobjects.Modifier(10, 0.0, 3.0, 0, 0, 0.0, 0.0)),
     ]
 
     def remove_shape(space, shape, shape2=None):
@@ -172,7 +169,7 @@ def main_game(score=[]):
     b_w_handler = collision_handler(space, 4, 2, collision_bullet_wood)
     b_s_handler = collision_handler(space, 4, 1, collision_bullet_wall)
     b_m_handler = collision_handler(space, 4, 3, collision_bullet_wall)
-    b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall) # For hitting map border
+    b_metal_handler = collision_handler(space, 4, 0, collision_bullet_wall)  # For hitting map border
     b_t_handler = collision_handler(space, 4, 5, collision_bullet_tank)
     b_b_handler = collision_handler(space, 4, 4, collision_bullet_bullet)
 
@@ -193,15 +190,15 @@ def main_game(score=[]):
     def create_background(screen, current_map, images):
         """ Creates a plain background with grass and no objects. """
         background = pygame.Surface(screen.get_size())
-        for y in range(0,  current_map.height):
-            for x in range(0,  current_map.width):
-                background.blit(images.grass,  (x * images.TILE_SIZE, y * images.TILE_SIZE))
+        for y in range(0, current_map.height):
+            for x in range(0, current_map.width):
+                background.blit(images.grass, (x * images.TILE_SIZE, y * images.TILE_SIZE))
         return background
 
     def create_boxes():
         """ Adds boxes to the map that acts as physical objects. """
         for x in range(0, current_map.width):
-            for y in range(0,  current_map.height):
+            for y in range(0, current_map.height):
                 # Get the type of boxes
                 box_type = current_map.boxAt(x, y)
                 # If the box type is not 0 (aka grass tile), create a box
@@ -248,19 +245,19 @@ def main_game(score=[]):
         """ Updates the visual menu with different stats such as score, fire rate... """
         for i in range(len(tanks_list)):
             # Draw everyone's stats menu
-            place = pygame.Rect((screen.get_size()[0]-UI_WIDTH)*(i % 2), screen.get_size()[1]/int(len(tanks_list)/2)*(i//2), UI_WIDTH, screen.get_size()[1]/int(len(tanks_list)/2))
+            place = pygame.Rect((screen.get_size()[0] - UI_WIDTH) * (i % 2), screen.get_size()[1] / int(len(tanks_list) / 2) * (i // 2), UI_WIDTH, screen.get_size()[1] / int(len(tanks_list) / 2))
             colour = images.colours[i]
 
             pygame.draw.rect(screen, colour, place)
-            
+
             # Draw HP/max HP as filled/empty boxes
             text_surface = my_font.render('HP:', False, (0, 0, 0))
             screen.blit(text_surface, (place.x + 10, place.y + 10))
             for j in range(tanks_list[i].max_hp):
-                rect = pygame.Rect(place.x + (j+4) * 11, place.y + 14, 10, 20)
+                rect = pygame.Rect(place.x + (j + 4) * 11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x000000, rect)
             for j in range(tanks_list[i].hp):
-                rect = pygame.Rect(place.x + (j+4)*11, place.y + 14, 10, 20)
+                rect = pygame.Rect(place.x + (j + 4) * 11, place.y + 14, 10, 20)
                 pygame.draw.rect(screen, 0x00ff00, rect)
 
             # Write all stats of the tank below HP
@@ -273,7 +270,8 @@ def main_game(score=[]):
             # Modifiers are shown as icons, and go like clock
             for j in range(len(tanks_list[i].modifiers.keys())):
                 rect = pygame.Rect(place.x + j * images.TILE_SIZE, place.y + 130, images.TILE_SIZE, images.TILE_SIZE)
-                screen.blit(list(tanks_list[i].modifiers.keys())[j], (rect.x, rect.y))
+                text_name = list(tanks_list[i].modifiers.keys())[j]
+                menu.text_creator(screen, my_font, text_name, 0x000000, (rect.x + 10, rect.y + 10))
                 pygame.draw.arc(screen, 0x000000, rect, 0, 2 * math.pi * (1 - list(tanks_list[i].modifiers.values())[j].time / list(tanks_list[i].modifiers.values())[j].orig.time), 8)
 
     def object_functions():
@@ -285,7 +283,6 @@ def main_game(score=[]):
 
     object_functions()
     flag = create_flag()
-
 
     def event_handler(running):
         """ Handles all events. """
@@ -351,7 +348,7 @@ def main_game(score=[]):
         main_game(score_list)
 
         pygame.display.flip()
-        
+
     def update_objects():
         """ Updates the objects on the screen. """
         # Update object that depends on an other object position (for instance a flag)
@@ -369,18 +366,17 @@ def main_game(score=[]):
     def bots():
         """ Updates the ai. """
         for ai in ai_list:
-            ai.decide(background)
+            ai.decide()
 
     def powerup():
         """ Spawns powerups. """
         if random.randint(1, 100) > 98:
-            x = random.randint(0, current_map.width-1)
-            y = random.randint(0, current_map.height-1)
+            x = random.randint(0, current_map.width - 1)
+            y = random.randint(0, current_map.height - 1)
 
             if current_map.boxAt(x, y) == 0:
-                powerup = gameobjects.PowerUp(x+0.5, y+0.5, powerup_defines[random.randint(0, len(powerup_defines)-1)])
-                powerups_list[(x+0.5, y+0.5)] = powerup
-
+                powerup = gameobjects.PowerUp(x + 0.5, y + 0.5, powerup_defines[random.randint(0, len(powerup_defines) - 1)])
+                powerups_list[(x + 0.5, y + 0.5)] = powerup
 
     def update_physics():
         """ Updates the physics of the game. """
