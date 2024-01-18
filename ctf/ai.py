@@ -124,7 +124,7 @@ class Ai:
         except AttributeError:
             print("Error")
 
-    def find_shortest_path(self, grid, start, end):
+    def find_shortest_path(self, start, end):
         """ A simple Breadth First Search using integer coordinates as our nodes.
         Edges are calculated as we go, using an external function."""
         queue = deque([(start, deque([start]))])  # Each element: (current_position, path)

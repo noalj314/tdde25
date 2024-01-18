@@ -270,8 +270,7 @@ def main_game(score=[]):
             # Modifiers are shown as icons, and go like clock
             for j in range(len(tanks_list[i].modifiers.keys())):
                 rect = pygame.Rect(place.x + j * images.TILE_SIZE, place.y + 130, images.TILE_SIZE, images.TILE_SIZE)
-                text_name = list(tanks_list[i].modifiers.keys())[j]
-                menu.text_creator(screen, my_font, text_name, 0x000000, (rect.x + 10, rect.y + 10))
+                menu.text_creator(screen, my_font, str(list(tanks_list[i].modifiers.keys())[j]), 0x000000, (rect.x + 10, rect.y + 10))
                 pygame.draw.arc(screen, 0x000000, rect, 0, 2 * math.pi * (1 - list(tanks_list[i].modifiers.values())[j].time / list(tanks_list[i].modifiers.values())[j].orig.time), 8)
 
     def object_functions():
